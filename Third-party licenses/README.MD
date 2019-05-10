@@ -1,0 +1,1 @@
+This folder contains all third-party licenes that are used by this software package.
