@@ -15,16 +15,16 @@ namespace FlowRx.DataSystem
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataDirectory : DataObject, IEnumerable<DataObject> // , IEnumerable<DataObject>
+    public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
-        private readonly BehaviorSubject<SourceCache<DataObject, object>> item;
+        private readonly BehaviorSubject<SourceCache<DataObject, string>> item;
         private readonly ISubject<DataUpdateInfo> _dataUpdateInfoObservable;
 
         private bool _isSyncUpdate;
 
         public DataDirectory(object key) : base(key)
         {
-            item = new BehaviorSubject<SourceCache<DataObject, object>>(new SourceCache<DataObject, object>(o => o.Key));
+            item = new BehaviorSubject<SourceCache<DataObject, string>>(new SourceCache<DataObject, string>(o => o.Key.ToString()));
 
             _dataUpdateInfoObservable = new Subject<DataUpdateInfo>();
             Link = Subject.Create<DataUpdateInfo>(Observer.Create<DataUpdateInfo>(OnDataLinkNext), _dataUpdateInfoObservable);
@@ -37,7 +37,7 @@ namespace FlowRx.DataSystem
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public DataItem<TData> GetOrCreate<TData>(object key, TData value = default(TData))
+        public DataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
         {
             DataItem<TData> data;
             if (item.Value.Lookup(key).Value is DataItem<TData> dataItem)
@@ -58,7 +58,7 @@ namespace FlowRx.DataSystem
                     _dataUpdateInfoObservable.OnNext(updateInfo.ForwardUp(Key));
                     if (updateInfo.UpdateType.HasFlag(DataUpdateType.Remove))
                     {
-                        item.Value.Remove(updateInfo.KeyChain[0]);
+                        item.Value.Remove(updateInfo.KeyChain[0]?.ToString());
                     }
                 });
             }
@@ -66,7 +66,7 @@ namespace FlowRx.DataSystem
             return data;
         }
 
-        public DataDirectory GetOrCreateDirectory(object key)
+        public DataDirectory GetOrCreateDirectory(string key)
         {
             DataDirectory data;
             if (item.Value.Lookup(key).Value is DataDirectory dataDirectory)
@@ -88,7 +88,7 @@ namespace FlowRx.DataSystem
                     _dataUpdateInfoObservable.OnNext(updateInfo.ForwardUp(Key));
                     if (updateInfo.UpdateType.HasFlag(DataUpdateType.Remove))
                     {
-                        item.Value.Remove(updateInfo.KeyChain[0]);
+                        item.Value.Remove(updateInfo.KeyChain[0]?.ToString());
                     }
                 });
             }
@@ -96,14 +96,14 @@ namespace FlowRx.DataSystem
             return data;
         }
 
-        public DataItem<TData> Get<TData>(object key) => (DataItem<TData>) Get(key);
+        public DataItem<TData> Get<TData>(string key) => (DataItem<TData>) Get(key);
 
-        public DataObject Get(object key)
+        public DataObject Get(string key)
         {
-            return item.Value.Lookup(key).Value;
+            return item.Value.Lookup(key?.ToString()).Value;
         }
 
-        public void Destroy(object key) {  }
+        public void Delete(string key) {  }
 
         private void OnDataLinkNext(DataUpdateInfo updateInfo)
         {
@@ -132,7 +132,7 @@ namespace FlowRx.DataSystem
                 {
                     if (updateInfo.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(DataDirectory))
                     {
-                        childDataObject = GetOrCreateDirectory(updateInfo.KeyChain[0]);
+                        childDataObject = GetOrCreateDirectory(updateInfo.KeyChain[0]?.ToString());
                     }
                     else
                     {
@@ -144,12 +144,23 @@ namespace FlowRx.DataSystem
                 }
                 else
                 {
-                    childDataObject = Get(updateInfo.KeyChain[0]);
+                    childDataObject = Get(updateInfo.KeyChain[0]?.ToString());
                 }
 
                 childDataObject?.Link.OnNext(updateInfo);
             }
             _isSyncUpdate = false;
         }
+
+        public void Copy(string sourceKey, string destinationKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Move(string sourceKey, string destinationKey)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

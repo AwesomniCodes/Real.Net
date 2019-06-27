@@ -12,7 +12,7 @@ namespace FlowRx.DataSystem
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public class DataItem<TData> : DataObject, ISubject<TData>, IDisposable
+    public class DataItem<TData> : DataObject, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
         private readonly IObservable<DataUpdateInfo> _dataUpdateInfoObservable;
