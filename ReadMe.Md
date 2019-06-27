@@ -1,8 +1,14 @@
 # FlowRx - A generic data flow framework
 
+
+**The data flow of modern state of the art application shall emblossom in a new declarative, clear and generic way supported by reactive programming fundamentals.**
+
 *The core reason that prevents further abstractions of common applications is the data flow.*
 
-**The data flow of modern state of the art application shall emblossom in a new declarative, clear and generic way supported by reactive programming fundamentals. - FlowRx**
+&rarr; Simplify your application's data flow now. &rarr; FlowRx
+
+
+
 
 ## Common data flows - Overview
 
