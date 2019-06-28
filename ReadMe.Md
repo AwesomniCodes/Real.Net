@@ -1,4 +1,6 @@
-# FlowRx - A generic data flow framework
+![FlowRx Logo](logo.png)
+# A generic data flow framework
+
 
 
 **The data flow of modern state of the art application shall emblossom in a new declarative, clear and generic way supported by reactive programming fundamentals.**
