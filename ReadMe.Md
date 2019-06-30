@@ -1,16 +1,16 @@
-<img src="logo.png" alt="FlowRx Logo" width="200"/>
+<img src="logo.png" alt="FlowRx Logo" height="109"/>
 
-# A reactive data flow framework
+# The reactive data flow framework
 
 **Describe your data flows in a new declarative, generic way supported by reactive programming fundamentals.**
 
 *The core reason that prevents further abstractions of common applications is the data flow.*
 
-Emblossom your application with **FlowRx**
+Emblossom your application with **flowRx**
 
 
 ## Common data flows - Overview
-This overview gives an idea which modern day application requirements can be best fulfilled with FlowRx.
+This overview gives an idea which modern day application requirements can be best fulfilled with flowRx.
 
 ##
 
