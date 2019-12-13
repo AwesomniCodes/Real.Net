@@ -1,4 +1,4 @@
-<img src="logo.png" alt="FlowRx Logo" height="109"/>
+![FlowRx](./logo.png)
 
 # The reactive data flow framework
 
