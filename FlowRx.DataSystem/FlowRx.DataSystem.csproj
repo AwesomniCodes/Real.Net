@@ -7,11 +7,13 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Felix Keil</Authors>
     <Product>FlowRx</Product>
-    <Copyright>2019 - Felix Keil</Copyright>
+    <Copyright>2020 - Felix Keil</Copyright>
     <RepositoryUrl>https://dev.azure.com/keil/FlowRx</RepositoryUrl>
     <Company>Felix Keil</Company>
     <PackageProjectUrl>https://keilfelix.github.io/FlowRx/</PackageProjectUrl>
     <PackageIconUrl />
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
