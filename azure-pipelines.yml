@@ -15,13 +15,19 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- task: UseDotNet@3
+  displayName: 'Install .NET Core SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '3.x'
 - task: NuGetToolInstaller@1
   inputs:
     versionSpec: '5.4.0'
-    checkLatest: true
+
 - task: NuGetCommand@2
   inputs:
-    restoreSolution: '$(solution)'
+    command: 'restore'
+    restoreSolution: '**/*.sln'
 
 - task: VSBuild@1
   inputs:
