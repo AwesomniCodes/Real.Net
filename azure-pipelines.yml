@@ -2,6 +2,7 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+name: $(TeamProject)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyy.MM.dd)$(Rev:.r)
 
 trigger:
 - master
@@ -41,13 +42,16 @@ steps:
     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
+  displayName: Pack
   inputs:
     command: 'pack'
     packagesToPack: '**/*.csproj'
+    nobuild: true
     versioningScheme: 'byBuildNumber'
-
 - task: DotNetCoreCLI@2
+  displayName: Push
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
     nuGetFeedType: 'internal'
+    publishVstsFeed: 'b655b4cc-1c6b-4a73-9e7d-7cdb7a83940a/f9e4121a-a284-438e-88c1-3de0fce09ad7'
