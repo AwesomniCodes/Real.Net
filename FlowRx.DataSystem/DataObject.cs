@@ -16,6 +16,6 @@ namespace FlowRx.DataSystem
 
         public abstract ISubject<DataUpdateInfo> Link { get; }
 
-        public abstract DataObject Clone();
+        public abstract IDataObject Clone();
     }
 }

@@ -9,15 +9,15 @@ namespace FlowRx.DataSystem
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDirectory : IDataObject, IEnumerable<DataObject>
+    public interface IDataDirectory : IDataObject, IEnumerable<IDataObject>
     {
-        DataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData));
+        IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData));
 
-        DataDirectory GetOrCreateDirectory(string key);
+        IDataDirectory GetOrCreateDirectory(string key);
 
-        DataItem<TData> Get<TData>(string key);
+        IDataItem<TData> Get<TData>(string key);
 
-        DataObject Get(string key);
+        IDataObject Get(string key);
 
         void Delete(string key);
 

@@ -45,7 +45,7 @@ namespace FlowRx.DataSystem
 
         public override ISubject<DataUpdateInfo> Link { get; }
 
-        public override DataObject Clone() { throw new NotImplementedException(); }
+        public override IDataObject Clone() { throw new NotImplementedException(); }
 
         public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
 

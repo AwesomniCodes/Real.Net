@@ -17,30 +17,30 @@ namespace FlowRx.DataSystem
 
     public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
-        private readonly BehaviorSubject<SourceCache<DataObject, string>> item;
+        private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
         private readonly ISubject<DataUpdateInfo> _dataUpdateInfoObservable;
 
         private bool _isSyncUpdate;
 
         public DataDirectory(object key) : base(key)
         {
-            item = new BehaviorSubject<SourceCache<DataObject, string>>(new SourceCache<DataObject, string>(o => o.Key.ToString()));
+            item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
             _dataUpdateInfoObservable = new Subject<DataUpdateInfo>();
             Link = Subject.Create<DataUpdateInfo>(Observer.Create<DataUpdateInfo>(OnDataLinkNext), _dataUpdateInfoObservable);
         }
 
         public override ISubject<DataUpdateInfo> Link { get; }
-        public override DataObject Clone() { throw new NotImplementedException(); }
+        public override IDataObject Clone() { throw new NotImplementedException(); }
 
-        public IEnumerator<DataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
+        public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public DataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
+        public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
         {
-            DataItem<TData> data;
-            if (item.Value.Lookup(key).Value is DataItem<TData> dataItem)
+            IDataItem<TData> data;
+            if (item.Value.Lookup(key).Value is IDataItem<TData> dataItem)
             {
                 data = dataItem;
             }
@@ -66,18 +66,18 @@ namespace FlowRx.DataSystem
             return data;
         }
 
-        public DataDirectory GetOrCreateDirectory(string key)
+        public IDataDirectory GetOrCreateDirectory(string key)
         {
-            DataDirectory data;
-            if (item.Value.Lookup(key).Value is DataDirectory dataDirectory)
+            IDataDirectory data;
+            if (item.Value.Lookup(key).Value is IDataDirectory dataDirectory)
             {
                 data = dataDirectory;
             }
             else
             {
                 data = new DataDirectory(key);
-                item.Value.AddOrUpdate((DataObject)data);
-                _dataUpdateInfoObservable.OnNext(new DataUpdateInfo<DataDirectory>(DataUpdateType.Created, key).ForwardUp(Key));
+                item.Value.AddOrUpdate((IDataObject)data);
+                _dataUpdateInfoObservable.OnNext(new DataUpdateInfo<IDataDirectory>(DataUpdateType.Created, key).ForwardUp(Key));
 
                 data.Link.Subscribe(updateInfo =>
                 {
@@ -96,9 +96,9 @@ namespace FlowRx.DataSystem
             return data;
         }
 
-        public DataItem<TData> Get<TData>(string key) => (DataItem<TData>) Get(key);
+        public IDataItem<TData> Get<TData>(string key) => (IDataItem<TData>) Get(key);
 
-        public DataObject Get(string key)
+        public IDataObject Get(string key)
         {
             return item.Value.Lookup(key?.ToString()).Value;
         }
@@ -126,11 +126,11 @@ namespace FlowRx.DataSystem
             {
                 updateInfo = updateInfo.ForwardDown(Key);
 
-                DataObject childDataObject;
+                IDataObject childDataObject;
 
                 if (updateInfo.KeyChain.Count == 1 && updateInfo.UpdateType.HasFlag(DataUpdateType.Created))
                 {
-                    if (updateInfo.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(DataDirectory))
+                    if (updateInfo.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
                     {
                         childDataObject = GetOrCreateDirectory(updateInfo.KeyChain[0]?.ToString());
                     }
@@ -138,7 +138,7 @@ namespace FlowRx.DataSystem
                     {
                         MethodInfo method = GetType().GetMethod("GetOrCreate");
                         MethodInfo generic = method.MakeGenericMethod(updateInfo.Value.GetType());
-                        childDataObject = (DataObject) generic.Invoke(this,
+                        childDataObject = (IDataObject) generic.Invoke(this,
                             new object[] {updateInfo.KeyChain[0], updateInfo.Value});
                     }
                 }
