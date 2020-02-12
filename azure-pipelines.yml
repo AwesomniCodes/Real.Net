@@ -13,10 +13,8 @@ variables:
   Build.BuildNumber: $(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
 steps:
 
-  - bash: |
-      echo "##vso[build.updatebuildnumber]$(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)"
-    condition: eq(variables['release.enabled'], 'true')
-    name: SetReleaseBuildName
+- script: echo "##vso[build.updatebuildnumber]$(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)"
+  displayName: Set Build Number
 
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK 3.1'
@@ -48,12 +46,14 @@ steps:
     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
+  displayName: Pack
   inputs:
     command: 'pack'
     packagesToPack: '**/*.csproj'
     versioningScheme: 'byBuildNumber'
 
 - task: DotNetCoreCLI@2
+  displayName: Push
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/*.nupkg'
