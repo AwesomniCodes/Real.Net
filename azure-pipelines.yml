@@ -11,7 +11,7 @@ pool:
 
 steps:
 
-- script: echo ##vso[build.updatebuildnumber]$(Build.DefinitionName)
+- script: echo ##vso[build.updatebuildnumber]$(Build.DefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
   displayName: Set Build Number
 
 - task: UseDotNet@2
