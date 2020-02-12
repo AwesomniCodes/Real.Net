@@ -13,15 +13,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{AEB9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{D4315B02-0833-4CC4-A0EF-2A190D40FAE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowRx.Utility.Mvvm", "FlowRx.Utility.Mvvm\FlowRx.Utility.Mvvm.csproj", "{34953774-034D-4BF0-835A-5E497562D7E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Utility.Mvvm", "FlowRx.Utility.Mvvm\FlowRx.Utility.Mvvm.csproj", "{34953774-034D-4BF0-835A-5E497562D7E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowRx.Utility.Wpf", "FlowRx.Utility.Wpf\FlowRx.Utility.Wpf.csproj", "{72BCB9DB-F000-4112-901E-A89F39FD374D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Utility.Wpf", "FlowRx.Utility.Wpf\FlowRx.Utility.Wpf.csproj", "{72BCB9DB-F000-4112-901E-A89F39FD374D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowRx.Utility", "FlowRx.Utility\FlowRx.Utility.csproj", "{5422913B-ECC1-43F9-8070-FCBB124B79F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Utility", "FlowRx.Utility\FlowRx.Utility.csproj", "{5422913B-ECC1-43F9-8070-FCBB124B79F4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utility", "Utility", "{0CDF59AF-08E6-4831-97AF-6E0C17602A11}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowRx.Tools.DataSystemViewModels", "FlowRx.Tools.DataSystemViewModels\FlowRx.Tools.DataSystemViewModels.csproj", "{B25E40BD-EC4B-45B0-B291-E69F15349235}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Tools.DataSystemViewModels", "FlowRx.Tools.DataSystemViewModels\FlowRx.Tools.DataSystemViewModels.csproj", "{B25E40BD-EC4B-45B0-B291-E69F15349235}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
