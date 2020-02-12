@@ -9,11 +9,9 @@ trigger:
 pool:
   vmImage: 'windows-2019'
 
-variables:
-  Build.BuildNumber: $(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
 steps:
 
-- script: echo "##vso[build.updatebuildnumber]$(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)"
+- script: echo "##vso[build.updatebuildnumber]$(Build.DefinitionName)"
   displayName: Set Build Number
 
 - task: UseDotNet@2
