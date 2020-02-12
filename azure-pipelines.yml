@@ -13,6 +13,11 @@ variables:
   Build.BuildNumber: $(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)
 steps:
 
+  - bash: |
+      echo "##vso[build.updatebuildnumber]$(BuildDefinitionName)_$(Year:yyyy).$(Month).$(DayOfMonth)$(Rev:.r)"
+    condition: eq(variables['release.enabled'], 'true')
+    name: SetReleaseBuildName
+
 - task: UseDotNet@2
   displayName: 'Install .NET Core SDK 3.1'
   inputs:
