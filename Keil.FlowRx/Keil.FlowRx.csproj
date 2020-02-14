@@ -8,12 +8,14 @@
     <Authors>Felix Keil</Authors>
     <Product>FlowRx</Product>
     <Copyright>2020 - Felix Keil</Copyright>
-    <RepositoryUrl>https://dev.azure.com/keil/FlowRx</RepositoryUrl>
+    <RepositoryUrl>https://dev.azure.com/keil/Keil.FlowRx</RepositoryUrl>
     <Company>Felix Keil</Company>
-    <PackageProjectUrl>https://keilfelix.github.io/FlowRx/</PackageProjectUrl>
+    <PackageProjectUrl>https://keilfelix.github.io/Keil.FlowRx/</PackageProjectUrl>
     <PackageIconUrl />
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
+    <RootNamespace>Keil.FlowRx</RootNamespace>
+    <AssemblyName>Keil.FlowRx</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

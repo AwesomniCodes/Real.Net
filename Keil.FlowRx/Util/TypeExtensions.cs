@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FlowRx.Utility.Extensions
+namespace Keil.FlowRx.Utility.Extensions
 {
     public static class TypeExtensions
     {

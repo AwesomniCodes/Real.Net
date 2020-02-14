@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace FlowRx.Tests
+namespace Keil.FlowRx.Tests
 {
     [TestClass]
     public class DataObjectTest

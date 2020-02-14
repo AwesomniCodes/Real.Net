@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 
-namespace FlowRx.Utility.Extensions
+namespace Keil.FlowRx.Utility.Extensions
 {
     public static class RxExtensions
     {

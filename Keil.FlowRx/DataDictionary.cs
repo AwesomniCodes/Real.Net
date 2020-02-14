@@ -1,10 +1,10 @@
 ﻿//// --------------------------------------------------------------------------------------------------------------------
 //// <copyright year="2019" author="Felix Keil" contact="keil.felix@outlook.com"
-////    file="DataDictionary.cs" project="FlowRx" solution="FlowRx" />
+////    file="DataDictionary.cs" project="Keil.FlowRx" solution="Keil.FlowRx" />
 //// <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 //// --------------------------------------------------------------------------------------------------------------------
 
-//namespace FlowRx.DataSystem
+//namespace Keil.FlowRx.DataSystem
 //{
 //    using System;
 //    using System.Collections;

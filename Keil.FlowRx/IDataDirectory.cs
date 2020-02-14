@@ -1,10 +1,10 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2019" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="IDataDirectory.cs" project="FlowRx" solution="FlowRx" />
+//    file="IDataDirectory.cs" project="Keil.FlowRx" solution="Keil.FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace FlowRx.DataSystem
+namespace Keil.FlowRx.DataSystem
 {
     using System.Collections.Generic;
     using System.Reactive.Subjects;
