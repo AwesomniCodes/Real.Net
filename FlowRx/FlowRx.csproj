@@ -7,15 +7,16 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Felix Keil</Authors>
     <Product>FlowRx</Product>
-    <Copyright>2020 - Felix Keil</Copyright>
-    <RepositoryUrl>https://dev.azure.com/keil/Keil.FlowRx</RepositoryUrl>
-    <Company>Felix Keil</Company>
-    <PackageProjectUrl>https://keilfelix.github.io/Keil.FlowRx/</PackageProjectUrl>
+    <Copyright>2020 - Awesomni.Codes</Copyright>
+    <RepositoryUrl>https://dev.azure.com/keil/AwesomniCodes.FlowRx</RepositoryUrl>
+    <Company>Awesomni.Codes</Company>
+    <PackageProjectUrl>https://keilfelix.github.io/AwesomniCodes.FlowRx/</PackageProjectUrl>
     <PackageIconUrl />
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <RootNamespace>Keil.FlowRx</RootNamespace>
-    <AssemblyName>Keil.FlowRx</AssemblyName>
+    <RootNamespace>AwesomniCodes.FlowRx</RootNamespace>
+    <AssemblyName>AwesomniCodes.FlowRx</AssemblyName>
+    <PackageId>Awesomni.Codes.FlowRx</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

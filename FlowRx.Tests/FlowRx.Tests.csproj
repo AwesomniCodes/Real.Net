@@ -4,6 +4,12 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <Authors>Felix Keil</Authors>
+
+    <Company>Awesomni.Codes</Company>
+
+    <PackageId>Awesomni.Codes.FlowRx.Tests</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

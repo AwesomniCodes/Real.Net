@@ -1,10 +1,10 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2019" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="DataItem{TData}.cs" project="Keil.FlowRx" solution="Keil.FlowRx" />
+//    file="DataItem{TData}.cs" project="AwesomniCodes.FlowRx" solution="AwesomniCodes.FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Keil.FlowRx.DataSystem
+namespace AwesomniCodes.FlowRx.DataSystem
 {
     using System;
     using System.Collections.Generic;
