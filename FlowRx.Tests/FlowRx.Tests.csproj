@@ -10,6 +10,14 @@
     <Company>Awesomni.Codes</Company>
 
     <PackageId>Awesomni.Codes.FlowRx.Tests</PackageId>
+
+    <Copyright>2020 - Awesomni.Codes</Copyright>
+
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <PackageProjectUrl>https://awesomni.codes/FlowRx/</PackageProjectUrl>
+
+    <RepositoryUrl>https://dev.azure.com/keil/AwesomniCodes.FlowRx</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

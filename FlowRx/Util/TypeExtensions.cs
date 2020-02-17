@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace AwesomniCodes.FlowRx.Utility.Extensions
+namespace Awesomni.Codes.FlowRx.Utility.Extensions
 {
     public static class TypeExtensions
     {

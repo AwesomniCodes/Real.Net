@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 
-namespace AwesomniCodes.FlowRx.Utility.Extensions
+namespace Awesomni.Codes.FlowRx.Utility.Extensions
 {
     public static class RxExtensions
     {
