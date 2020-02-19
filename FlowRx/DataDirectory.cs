@@ -7,6 +7,7 @@
 namespace Awesomni.Codes.FlowRx.DataSystem
 {
     using DynamicData;
+    using DynamicData.Kernel;
     using System;
     using System.Collections;
     using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
         {
             IDataItem<TData> data;
-            if (item.Value.Lookup(key).Value is IDataItem<TData> dataItem)
+            if (item.Value.Lookup(key).ValueOrDefault() is IDataItem<TData> dataItem)
             {
                 data = dataItem;
             }
@@ -69,7 +70,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         public IDataDirectory GetOrCreateDirectory(string key)
         {
             IDataDirectory data;
-            if (item.Value.Lookup(key).Value is IDataDirectory dataDirectory)
+            if (item.Value.Lookup(key).ValueOrDefault() is IDataDirectory dataDirectory)
             {
                 data = dataDirectory;
             }
