@@ -19,7 +19,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
         private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
-        private readonly ISubject<DataUpdateInfo> _dataUpdateInfoObservable;
+        private readonly ISubject<DataChange> _dataChangeObservable;
 
         private bool _isSyncUpdate;
 
@@ -27,11 +27,11 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         {
             item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
-            _dataUpdateInfoObservable = new Subject<DataUpdateInfo>();
-            Link = Subject.Create<DataUpdateInfo>(Observer.Create<DataUpdateInfo>(OnDataLinkNext), _dataUpdateInfoObservable);
+            _dataChangeObservable = new Subject<DataChange>();
+            Link = Subject.Create<DataChange>(Observer.Create<DataChange>(OnDataLinkNext), _dataChangeObservable);
         }
 
-        public override ISubject<DataUpdateInfo> Link { get; }
+        public override ISubject<DataChange> Link { get; }
         public override IDataObject Clone() { throw new NotImplementedException(); }
 
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
@@ -50,16 +50,16 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                 data = new DataItem<TData>(key, value);
                 item.Value.AddOrUpdate(data);
 
-                data.Link.Subscribe(updateInfo =>
+                data.Link.Subscribe(change =>
                 {
                     if (_isSyncUpdate)
                     {
-                        updateInfo = updateInfo.CreateWithSameType(updateInfo.UpdateType | DataUpdateType.Sync, updateInfo.KeyChain, updateInfo.Value);
+                        change = change.CreateWithSameType(change.ChangeType | DataChangeType.Sync, change.KeyChain, change.Value);
                     }
-                    _dataUpdateInfoObservable.OnNext(updateInfo.ForwardUp(Key));
-                    if (updateInfo.UpdateType.HasFlag(DataUpdateType.Remove))
+                    _dataChangeObservable.OnNext(change.ForwardUp(Key));
+                    if (change.ChangeType.HasFlag(DataChangeType.Remove))
                     {
-                        item.Value.Remove(updateInfo.KeyChain[0]?.ToString());
+                        item.Value.Remove(change.KeyChain[0]?.ToString());
                     }
                 });
             }
@@ -78,18 +78,18 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _dataUpdateInfoObservable.OnNext(new DataUpdateInfo<IDataDirectory>(DataUpdateType.Created, key).ForwardUp(Key));
+                _dataChangeObservable.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key));
 
-                data.Link.Subscribe(updateInfo =>
+                data.Link.Subscribe(change =>
                 {
                     if (_isSyncUpdate)
                     {
-                        updateInfo = updateInfo.CreateWithSameType(updateInfo.UpdateType | DataUpdateType.Sync, updateInfo.KeyChain, updateInfo.Value);
+                        change = change.CreateWithSameType(change.ChangeType | DataChangeType.Sync, change.KeyChain, change.Value);
                     }
-                    _dataUpdateInfoObservable.OnNext(updateInfo.ForwardUp(Key));
-                    if (updateInfo.UpdateType.HasFlag(DataUpdateType.Remove))
+                    _dataChangeObservable.OnNext(change.ForwardUp(Key));
+                    if (change.ChangeType.HasFlag(DataChangeType.Remove))
                     {
-                        item.Value.Remove(updateInfo.KeyChain[0]?.ToString());
+                        item.Value.Remove(change.KeyChain[0]?.ToString());
                     }
                 });
             }
@@ -106,49 +106,49 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public void Delete(string key) {  }
 
-        private void OnDataLinkNext(DataUpdateInfo updateInfo)
+        private void OnDataLinkNext(DataChange change)
         {
-            if (!EqualityComparer<object>.Default.Equals(Key, updateInfo.KeyChain[0]))
+            if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
             {
                 throw new InvalidOperationException();
             }
 
-            if (updateInfo.UpdateType.HasFlag(DataUpdateType.Sync))
+            if (change.ChangeType.HasFlag(DataChangeType.Sync))
             {
                 _isSyncUpdate = true;
             }
 
-            if (updateInfo.KeyChain.Count == 1)
+            if (change.KeyChain.Count == 1)
             {
                 //TODO: The whole directory gets replaced
-                //item.OnNext(updateInfo);
+                //item.OnNext(change);
             }
             else
             {
-                updateInfo = updateInfo.ForwardDown(Key);
+                change = change.ForwardDown(Key);
 
                 IDataObject childDataObject;
 
-                if (updateInfo.KeyChain.Count == 1 && updateInfo.UpdateType.HasFlag(DataUpdateType.Created))
+                if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(DataChangeType.Created))
                 {
-                    if (updateInfo.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
+                    if (change.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
                     {
-                        childDataObject = GetOrCreateDirectory(updateInfo.KeyChain[0]?.ToString());
+                        childDataObject = GetOrCreateDirectory(change.KeyChain[0]?.ToString());
                     }
                     else
                     {
                         MethodInfo method = GetType().GetMethod("GetOrCreate");
-                        MethodInfo generic = method.MakeGenericMethod(updateInfo.Value.GetType());
+                        MethodInfo generic = method.MakeGenericMethod(change.Value.GetType());
                         childDataObject = (IDataObject) generic.Invoke(this,
-                            new object[] {updateInfo.KeyChain[0], updateInfo.Value});
+                            new object[] {change.KeyChain[0], change.Value});
                     }
                 }
                 else
                 {
-                    childDataObject = Get(updateInfo.KeyChain[0]?.ToString());
+                    childDataObject = Get(change.KeyChain[0]?.ToString());
                 }
 
-                childDataObject?.Link.OnNext(updateInfo);
+                childDataObject?.Link.OnNext(change);
             }
             _isSyncUpdate = false;
         }

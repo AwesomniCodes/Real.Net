@@ -22,46 +22,46 @@
 
 //        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-//        public override void Notify(DataUpdateInfo updateInfo)
+//        public override void Notify(DataChange change)
 //        {
-//            if (!EqualityComparer<object>.Default.Equals(Key, updateInfo.KeyChain[0]))
+//            if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
 //            {
 //                throw new InvalidOperationException();
 //            }
 
-//            if (updateInfo.KeyChain.Count == 1)
+//            if (change.KeyChain.Count == 1)
 //            {
 //                //TODO: The whole dictionary gets replaced
-//                base.Notify(updateInfo);
+//                base.Notify(change);
 //            }
 //            else
 //            {
 //                _isReceiveUpdate = true;
 
-//                updateInfo = updateInfo.ForwardDown(Key);
+//                change = change.ForwardDown(Key);
 
 //                DataObject childDataObject;
 
-//                if (updateInfo.KeyChain.Count == 1 && updateInfo.UpdateType.HasFlag(DataUpdateType.Created))
+//                if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(DataChangeType.Created))
 //                {
-//                    if (updateInfo.Value.GetType() == typeof(ObservableDictionary<object, DataObject>))
+//                    if (change.Value.GetType() == typeof(ObservableDictionary<object, DataObject>))
 //                    {
-//                        childDataObject = GetOrCreateDirectory(updateInfo.KeyChain[0]);
+//                        childDataObject = GetOrCreateDirectory(change.KeyChain[0]);
 //                    }
 //                    else
 //                    {
 //                        MethodInfo method = GetType().GetMethod("GetOrCreate");
-//                        MethodInfo generic = method.MakeGenericMethod(updateInfo.Value.GetType());
+//                        MethodInfo generic = method.MakeGenericMethod(change.Value.GetType());
 //                        childDataObject = (DataObject)generic.Invoke(this,
-//                            new object[] { updateInfo.KeyChain[0], updateInfo.Value });
+//                            new object[] { change.KeyChain[0], change.Value });
 //                    }
 //                }
 //                else
 //                {
-//                    childDataObject = Get(updateInfo.KeyChain[0]);
+//                    childDataObject = Get(change.KeyChain[0]);
 //                }
 
-//                childDataObject?.Notify(updateInfo);
+//                childDataObject?.Notify(change);
 //                _isReceiveUpdate = false;
 //            }
 //        }
@@ -73,14 +73,14 @@
 //            {
 //                data = createData();
 //                ValueSubject.Value.Add(key, dataObject = data);
-//                _updates.OnNext(new DataUpdateInfo<TData>(DataUpdateType.Created, key, data.ValueSubject.Value).ForwardUp(Key));
+//                _updates.OnNext(new DataChange<TData>(DataChangeType.Created, key, data.ValueSubject.Value).ForwardUp(Key));
 
-//                data.Updates.Subscribe(updateInfo =>
+//                data.Updates.Subscribe(change =>
 //                {
-//                    _updates.OnNext(updateInfo.ForwardUp(Key));
-//                    if (updateInfo.UpdateType.HasFlag(DataUpdateType.Remove))
+//                    _updates.OnNext(change.ForwardUp(Key));
+//                    if (change.ChangeType.HasFlag(DataChangeType.Remove))
 //                    {
-//                        ValueSubject.Value.Remove(updateInfo.KeyChain[0]);
+//                        ValueSubject.Value.Remove(change.KeyChain[0]);
 //                    }
 //                });
 //            }

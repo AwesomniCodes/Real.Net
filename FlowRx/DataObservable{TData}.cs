@@ -14,7 +14,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
     public class DataObservable<TData> : DataObject, IObservable<TData>
     {
-        private readonly IObservable<DataUpdateInfo> _dataUpdateInfoObservable;
+        private readonly IObservable<DataChange> _dataChangeObservable;
         private readonly IObservable<TData> _observable;
 
         internal DataObservable(object key, IObservable<TData> observable, TData initialValue = default(TData)) : base(key)
@@ -22,34 +22,34 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataUpdateInfoObservable = Observable.Return(new DataUpdateInfo<TData>(DataUpdateType.Connected, Key, initialValue))
+            _dataChangeObservable = Observable.Return(new DataChange<TData>(DataChangeType.Connected, Key, initialValue))
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
                     {
-                        return Observable.Empty<DataUpdateInfo<TData>>();
+                        return Observable.Empty<DataChange<TData>>();
                     }
 
                     isFirst = false;
 
-                    return Observable.Return(new DataUpdateInfo<TData>(DataUpdateType.Modify, Key, value));
+                    return Observable.Return(new DataChange<TData>(DataChangeType.Modify, Key, value));
                 }))
-                .Concat(Observable.Return(new DataUpdateInfo<TData>(DataUpdateType.Remove, Key, Value))) //When completed it means for DataUpdateInfo item is removed
-                .Concat(Observable.Never<DataUpdateInfo<TData>>()); //Avoid OnComplete
+                .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, Value))) //When completed it means for DataChange item is removed
+                .Concat(Observable.Never<DataChange<TData>>()); //Avoid OnComplete
 
-            Link = Subject.Create<DataUpdateInfo>(Observer.Create<DataUpdateInfo>(OnDataLinkNext), _dataUpdateInfoObservable);
+            Link = Subject.Create<DataChange>(Observer.Create<DataChange>(OnDataLinkNext), _dataChangeObservable);
         }
 
 
         public TData Value { get; }
 
-        public override ISubject<DataUpdateInfo> Link { get; }
+        public override ISubject<DataChange> Link { get; }
 
         public override IDataObject Clone() { throw new NotImplementedException(); }
 
         public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
 
-        private void OnDataLinkNext(DataUpdateInfo updateInfo)
+        private void OnDataLinkNext(DataChange change)
         {
             //Handle Errors
             throw new InvalidOperationException("DataObservable cannot be updated");

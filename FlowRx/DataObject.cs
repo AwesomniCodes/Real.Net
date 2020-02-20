@@ -14,7 +14,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public object Key { get; }
 
-        public abstract ISubject<DataUpdateInfo> Link { get; }
+        public abstract ISubject<DataChange> Link { get; }
 
         public abstract IDataObject Clone();
     }
