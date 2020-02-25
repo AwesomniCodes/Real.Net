@@ -37,16 +37,14 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                 .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, Value))) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<DataChange<TData>>()); //Avoid OnComplete
 
-            Link = Subject.Create<DataChange>(Observer.Create<DataChange>(OnDataLinkNext), _dataChangeObservable);
+            Changes = Subject.Create<DataChange>(Observer.Create<DataChange>(OnDataLinkNext), _dataChangeObservable);
         }
 
 
         public TData Value { get; }
 
-        public override ISubject<DataChange> Link { get; }
-
-        public override IDataObject Clone() { throw new NotImplementedException(); }
-
+        public override ISubject<DataChange> Changes { get; }
+ 
         public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
 
         private void OnDataLinkNext(DataChange change)

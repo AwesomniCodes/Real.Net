@@ -13,27 +13,26 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     using System.Collections.Generic;
     using System.Linq;
     using System.Reactive;
+    using System.Reactive.Linq;
     using System.Reactive.Subjects;
     using System.Reflection;
 
     public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
         private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
-        private readonly ISubject<DataChange> _dataChangeObservable;
-
-        private bool _isSyncUpdate;
+        private readonly ISubject<DataChange> _outSubject;
 
         public DataDirectory(object key) : base(key)
         {
             item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
-            _dataChangeObservable = new Subject<DataChange>();
-            Link = Subject.Create<DataChange>(Observer.Create<DataChange>(OnDataLinkNext), _dataChangeObservable);
+            _outSubject = new Subject<DataChange>();
+            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(change => change.ForwardUp(Key)));
+            var outObservable = Observable.Return(new DataChange<IDataDirectory>(DataChangeType.Created, Key)).Concat(_outSubject.Merge(childChangesObservable));
+            Changes = Subject.Create<DataChange>(Observer.Create<DataChange>(OnChangeIn), outObservable);
         }
 
-        public override ISubject<DataChange> Link { get; }
-        public override IDataObject Clone() { throw new NotImplementedException(); }
-
+        public override ISubject<DataChange> Changes { get; }
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
@@ -49,21 +48,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataItem<TData>(key, value);
                 item.Value.AddOrUpdate(data);
-
-                data.Link.Subscribe(change =>
-                {
-                    if (_isSyncUpdate)
-                    {
-                        change = change.CreateWithSameType(change.ChangeType | DataChangeType.Sync, change.KeyChain, change.Value);
-                    }
-                    _dataChangeObservable.OnNext(change.ForwardUp(Key));
-                    if (change.ChangeType.HasFlag(DataChangeType.Remove))
-                    {
-                        item.Value.Remove(change.KeyChain[0]?.ToString());
-                    }
-                });
             }
-
             return data;
         }
 
@@ -78,20 +63,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _dataChangeObservable.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key));
-
-                data.Link.Subscribe(change =>
-                {
-                    if (_isSyncUpdate)
-                    {
-                        change = change.CreateWithSameType(change.ChangeType | DataChangeType.Sync, change.KeyChain, change.Value);
-                    }
-                    _dataChangeObservable.OnNext(change.ForwardUp(Key));
-                    if (change.ChangeType.HasFlag(DataChangeType.Remove))
-                    {
-                        item.Value.Remove(change.KeyChain[0]?.ToString());
-                    }
-                });
+                _outSubject.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key));
             }
 
             return data;
@@ -106,16 +78,11 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public void Delete(string key) {  }
 
-        private void OnDataLinkNext(DataChange change)
+        private void OnChangeIn(DataChange change)
         {
             if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
             {
                 throw new InvalidOperationException();
-            }
-
-            if (change.ChangeType.HasFlag(DataChangeType.Sync))
-            {
-                _isSyncUpdate = true;
             }
 
             if (change.KeyChain.Count == 1)
@@ -148,9 +115,8 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                     childDataObject = Get(change.KeyChain[0]?.ToString());
                 }
 
-                childDataObject?.Link.OnNext(change);
+                childDataObject?.Changes.OnNext(change);
             }
-            _isSyncUpdate = false;
         }
 
         public void Copy(string sourceKey, string destinationKey)

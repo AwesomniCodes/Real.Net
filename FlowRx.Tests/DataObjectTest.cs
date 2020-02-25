@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Reactive.Linq;
 using System.Text;
 
 namespace Awesomni.Codes.FlowRx.Tests
@@ -41,8 +42,9 @@ namespace Awesomni.Codes.FlowRx.Tests
             testString.OnNext("NewTestString");
             testBool.OnNext(false);
             testBool2.OnNext(true);
-            Assert.IsTrue(true);
 
+            Assert.IsTrue(true);
+            var testList = system1.Changes.TakeUntil(Observable.Interval(TimeSpan.FromSeconds(1))).ToList().FirstAsync().Wait();
         }
     }
 }

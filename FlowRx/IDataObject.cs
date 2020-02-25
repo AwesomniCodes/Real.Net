@@ -12,6 +12,6 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     {
         object Key { get; }
 
-        ISubject<DataChange> Link { get; }
+        ISubject<DataChange> Changes { get; }
     }
 }

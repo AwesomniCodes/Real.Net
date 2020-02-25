@@ -18,7 +18,6 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         Modify = 4,
         Remove = 8,
         Request = 16,
-        Sync = 32,
     }
 
     public abstract class DataChange
