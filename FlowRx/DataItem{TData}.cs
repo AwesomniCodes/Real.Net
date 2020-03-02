@@ -6,6 +6,7 @@
 
 namespace Awesomni.Codes.FlowRx.DataSystem
 {
+    using Awesomni.Codes.FlowRx.Utility.Extensions;
     using System;
     using System.Collections.Generic;
     using System.Reactive;
@@ -15,7 +16,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     public class DataItem<TData> : DataObject, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
-        private readonly IObservable<DataChange> _outObservable;
+        private readonly IObservable<IEnumerable<DataChange>> _outObservable;
         private bool _isDisposed;
 
         internal DataItem(object key, TData initialValue = default(TData)) : base(key)
@@ -24,17 +25,17 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => new DataChange<TData>(DataChangeType.Created, Key, value))
+                    pub.Take(1).Select(value => new DataChange<TData>(DataChangeType.Created, Key, value).Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => new DataChange<TData>(DataChangeType.Modify, Key, value))))
-                .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, _subject.Value))); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => new DataChange<TData>(DataChangeType.Modify, Key, value).Yield())))
+                .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
-            Changes = Subject.Create<DataChange>(Observer.Create<DataChange>(OnChangeIn), _outObservable);
+            Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), _outObservable);
         }
 
         public TData Value => _subject.Value;
 
-        public override ISubject<DataChange> Changes { get; }
+        public override ISubject<IEnumerable<DataChange>> Changes { get; }
         public void OnCompleted() { _subject.OnCompleted(); }
 
         public void OnError(Exception error)
@@ -62,25 +63,28 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             _isDisposed = true;
         }
 
-        private void OnChangeIn(DataChange change)
+        private void OnChangeIn(IEnumerable<DataChange> changes)
         {
-            //Handle Errors
-            if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
-            if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]) || change.KeyChain.Count != 1)
-                OnError(new InvalidOperationException("Invalid key routing. KeyChain is invalid for this DataItem"));
-
-            if (change.ChangeType.HasFlag(DataChangeType.Modify))
+            foreach (var change in changes)
             {
-                var data = change.Value is TData value ? value : default(TData);
-                if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
+                //Handle Errors
+                if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
+                if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]) || change.KeyChain.Count != 1)
+                    OnError(new InvalidOperationException("Invalid key routing. KeyChain is invalid for this DataItem"));
+
+                if (change.ChangeType.HasFlag(DataChangeType.Modify))
                 {
-                    _subject.OnNext((TData) change.Value);
+                    var data = change.Value is TData value ? value : default(TData);
+                    if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
+                    {
+                        _subject.OnNext((TData)change.Value);
+                    }
                 }
-            }
 
-            if (change.ChangeType.HasFlag(DataChangeType.Remove))
-            {
-                _subject.OnCompleted();
+                if (change.ChangeType.HasFlag(DataChangeType.Remove))
+                {
+                    _subject.OnCompleted();
+                }
             }
         }
     }

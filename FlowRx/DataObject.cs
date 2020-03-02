@@ -6,6 +6,7 @@
 
 namespace Awesomni.Codes.FlowRx.DataSystem
 {
+    using System.Collections.Generic;
     using System.Reactive.Subjects;
 
     public abstract class DataObject : IDataObject
@@ -14,6 +15,6 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public object Key { get; }
 
-        public abstract ISubject<DataChange> Changes { get; }
+        public abstract ISubject<IEnumerable<DataChange>> Changes { get; }
     }
 }

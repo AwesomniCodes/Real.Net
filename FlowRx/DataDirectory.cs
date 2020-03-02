@@ -6,6 +6,7 @@
 
 namespace Awesomni.Codes.FlowRx.DataSystem
 {
+    using Awesomni.Codes.FlowRx.Utility.Extensions;
     using DynamicData;
     using DynamicData.Kernel;
     using System;
@@ -20,19 +21,19 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
         private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
-        private readonly ISubject<DataChange> _outSubject;
+        private readonly ISubject<IEnumerable<DataChange>> _outSubject;
 
         public DataDirectory(object key) : base(key)
         {
             item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
-            _outSubject = new Subject<DataChange>();
-            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(change => change.ForwardUp(Key)));
-            var outObservable = Observable.Return(new DataChange<IDataDirectory>(DataChangeType.Created, Key)).Concat(_outSubject.Merge(childChangesObservable));
-            Changes = Subject.Create<DataChange>(Observer.Create<DataChange>(OnChangeIn), outObservable);
+            _outSubject = new Subject<IEnumerable<DataChange>>();
+            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => changes.Select(change => change.ForwardUp(Key))));
+            var outObservable = Observable.Return(new DataChange<IDataDirectory>(DataChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), outObservable);
         }
 
-        public override ISubject<DataChange> Changes { get; }
+        public override ISubject<IEnumerable<DataChange>> Changes { get; }
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
@@ -63,7 +64,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _outSubject.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key));
+                _outSubject.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key).Yield());
             }
 
             return data;
@@ -78,44 +79,48 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public void Delete(string key) {  }
 
-        private void OnChangeIn(DataChange change)
+        private void OnChangeIn(IEnumerable<DataChange> changes)
         {
-            if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
+            foreach (var change in changes)
             {
-                throw new InvalidOperationException();
-            }
-
-            if (change.KeyChain.Count == 1)
-            {
-                //TODO: The whole directory gets replaced
-                //item.OnNext(change);
-            }
-            else
-            {
-                change = change.ForwardDown(Key);
-
-                IDataObject childDataObject;
-
-                if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(DataChangeType.Created))
+                var curChange = change;
+                if (!EqualityComparer<object>.Default.Equals(Key, curChange.KeyChain[0]))
                 {
-                    if (change.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
-                    {
-                        childDataObject = GetOrCreateDirectory(change.KeyChain[0]?.ToString());
-                    }
-                    else
-                    {
-                        MethodInfo method = GetType().GetMethod("GetOrCreate");
-                        MethodInfo generic = method.MakeGenericMethod(change.Value.GetType());
-                        childDataObject = (IDataObject) generic.Invoke(this,
-                            new object[] {change.KeyChain[0], change.Value});
-                    }
+                    throw new InvalidOperationException();
+                }
+
+                if (curChange.KeyChain.Count == 1)
+                {
+                    //TODO: The whole directory gets replaced
+                    //item.OnNext(change);
                 }
                 else
                 {
-                    childDataObject = Get(change.KeyChain[0]?.ToString());
-                }
+                    curChange = curChange.ForwardDown(Key);
 
-                childDataObject?.Changes.OnNext(change);
+                    IDataObject childDataObject;
+
+                    if (curChange.KeyChain.Count == 1 && curChange.ChangeType.HasFlag(DataChangeType.Created))
+                    {
+                        if (curChange.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
+                        {
+                            childDataObject = GetOrCreateDirectory(curChange.KeyChain[0]?.ToString());
+                        }
+                        else
+                        {
+                            MethodInfo method = GetType().GetMethod("GetOrCreate");
+                            MethodInfo generic = method.MakeGenericMethod(curChange.Value.GetType());
+                            childDataObject = (IDataObject)generic.Invoke(this,
+                                new object[] { curChange.KeyChain[0], change.Value });
+                        }
+                    }
+                    else
+                    {
+                        childDataObject = Get(curChange.KeyChain[0]?.ToString());
+                    }
+
+                    childDataObject?.Changes.OnNext(curChange.Yield());
+                }
             }
         }
 

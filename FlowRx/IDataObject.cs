@@ -6,12 +6,13 @@
 
 namespace Awesomni.Codes.FlowRx.DataSystem
 {
+    using System.Collections.Generic;
     using System.Reactive.Subjects;
 
     public interface IDataObject
     {
         object Key { get; }
 
-        ISubject<DataChange> Changes { get; }
+        ISubject<IEnumerable<DataChange>> Changes { get; }
     }
 }
