@@ -25,10 +25,10 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => new DataChange<TData>(DataChangeType.Created, Key, value).Yield())
+                    pub.Take(1).Select(value => DataChange<TData>.Create(DataChangeType.Created, Key, value).Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => new DataChange<TData>(DataChangeType.Modify, Key, value).Yield())))
-                .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => DataChange<TData>.Create(DataChangeType.Modify, Key, value).Yield())))
+                .Concat(Observable.Return(DataChange<TData>.Create(DataChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
             Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), _outObservable);
         }

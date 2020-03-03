@@ -23,7 +23,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataChangeObservable = Observable.Return(new DataChange<TData>(DataChangeType.Connected, Key, initialValue).Yield())
+            _dataChangeObservable = Observable.Return(DataChange<TData>.Create(DataChangeType.Connected, Key, initialValue).Yield())
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
@@ -33,9 +33,9 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
                     isFirst = false;
 
-                    return Observable.Return(new DataChange<TData>(DataChangeType.Modify, Key, value).Yield());
+                    return Observable.Return(DataChange<TData>.Create(DataChangeType.Modify, Key, value).Yield());
                 }))
-                .Concat(Observable.Return(new DataChange<TData>(DataChangeType.Remove, Key, Value).Yield())) //When completed it means for DataChange item is removed
+                .Concat(Observable.Return(DataChange<TData>.Create(DataChangeType.Remove, Key, Value).Yield())) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<IEnumerable<DataChange<TData>>>()); //Avoid OnComplete
 
             Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnDataLinkNext), _dataChangeObservable);

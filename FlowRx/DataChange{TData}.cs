@@ -67,7 +67,16 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public override DataChange CreateWithSameType(DataChangeType changeType, IEnumerable<object> keyChain, object value)
         {
-            return new DataChange<TData>(changeType, keyChain, value is TData genValue ? genValue : default(TData));
+            return Create(changeType, keyChain, value is TData genValue ? genValue : default(TData));
+        }
+
+        public static DataChange<TData> Create(DataChangeType changeType, object key, TData value = default(TData))
+        {
+            return new DataChange<TData>(changeType, key, value);
+        }
+        public static DataChange<TData> Create(DataChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData))
+        {
+            return new DataChange<TData>(changeType, keyChain, value);
         }
     }
 }

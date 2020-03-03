@@ -29,7 +29,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
             _outSubject = new Subject<IEnumerable<DataChange>>();
             var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => changes.Select(change => change.ForwardUp(Key))));
-            var outObservable = Observable.Return(new DataChange<IDataDirectory>(DataChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            var outObservable = Observable.Return(DataChange<IDataDirectory>.Create(DataChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
             Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), outObservable);
         }
 
@@ -64,7 +64,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _outSubject.OnNext(new DataChange<IDataDirectory>(DataChangeType.Created, key).ForwardUp(Key).Yield());
+                _outSubject.OnNext(DataChange<IDataDirectory>.Create(DataChangeType.Created, key).ForwardUp(Key).Yield());
             }
 
             return data;
