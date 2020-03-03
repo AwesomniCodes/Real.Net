@@ -16,7 +16,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     public class DataItem<TData> : DataObject, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
-        private readonly IObservable<IEnumerable<DataChange>> _outObservable;
+        private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
         private bool _isDisposed;
 
         internal DataItem(object key, TData initialValue = default(TData)) : base(key)
@@ -25,17 +25,17 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => DataChange<TData>.Create(DataChangeType.Created, Key, value).Yield())
+                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Created, Key, value).Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => DataChange<TData>.Create(DataChangeType.Modify, Key, value).Yield())))
-                .Concat(Observable.Return(DataChange<TData>.Create(DataChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, Key, value).Yield())))
+                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
-            Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), _outObservable);
+            Changes = Subject.Create<IEnumerable<ValueChange>>(Observer.Create<IEnumerable<ValueChange>>(OnChangeIn), _outObservable);
         }
 
         public TData Value => _subject.Value;
 
-        public override ISubject<IEnumerable<DataChange>> Changes { get; }
+        public override ISubject<IEnumerable<ValueChange>> Changes { get; }
         public void OnCompleted() { _subject.OnCompleted(); }
 
         public void OnError(Exception error)
@@ -63,7 +63,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             _isDisposed = true;
         }
 
-        private void OnChangeIn(IEnumerable<DataChange> changes)
+        private void OnChangeIn(IEnumerable<ValueChange> changes)
         {
             changes.ForEach(change =>
             {
@@ -72,7 +72,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                 if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]) || change.KeyChain.Count != 1)
                     OnError(new InvalidOperationException("Invalid key routing. KeyChain is invalid for this DataItem"));
 
-                if (change.ChangeType.HasFlag(DataChangeType.Modify))
+                if (change.ChangeType.HasFlag(ChangeType.Modify))
                 {
                     var data = change.Value is TData value ? value : default(TData);
                     if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
@@ -81,7 +81,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                     }
                 }
 
-                if (change.ChangeType.HasFlag(DataChangeType.Remove))
+                if (change.ChangeType.HasFlag(ChangeType.Remove))
                 {
                     _subject.OnCompleted();
                 }

@@ -21,19 +21,19 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
     {
         private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
-        private readonly ISubject<IEnumerable<DataChange>> _outSubject;
+        private readonly ISubject<IEnumerable<ValueChange>> _outSubject;
 
         public DataDirectory(object key) : base(key)
         {
             item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
-            _outSubject = new Subject<IEnumerable<DataChange>>();
+            _outSubject = new Subject<IEnumerable<ValueChange>>();
             var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => changes.Select(change => change.ForwardUp(Key))));
-            var outObservable = Observable.Return(DataChange<IDataDirectory>.Create(DataChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
-            Changes = Subject.Create<IEnumerable<DataChange>>(Observer.Create<IEnumerable<DataChange>>(OnChangeIn), outObservable);
+            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            Changes = Subject.Create<IEnumerable<ValueChange>>(Observer.Create<IEnumerable<ValueChange>>(OnChangeIn), outObservable);
         }
 
-        public override ISubject<IEnumerable<DataChange>> Changes { get; }
+        public override ISubject<IEnumerable<ValueChange>> Changes { get; }
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
@@ -64,7 +64,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _outSubject.OnNext(DataChange<IDataDirectory>.Create(DataChangeType.Created, key).ForwardUp(Key).Yield());
+                _outSubject.OnNext(ValueChange<IDataDirectory>.Create(ChangeType.Created, key).ForwardUp(Key).Yield());
             }
 
             return data;
@@ -79,7 +79,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public void Delete(string key) {  }
 
-        private void OnChangeIn(IEnumerable<DataChange> changes)
+        private void OnChangeIn(IEnumerable<ValueChange> changes)
         {
             changes.ForEach(change =>
             {
@@ -99,7 +99,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
                     IDataObject childDataObject;
 
-                    if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(DataChangeType.Created))
+                    if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(ChangeType.Created))
                     {
                         if (change.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
                         {

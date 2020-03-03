@@ -11,7 +11,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     using System.Linq;
 
     [Flags]
-    public enum DataChangeType : int
+    public enum ChangeType : int
     {
         Created = 1,
         Connected = 2,
@@ -22,31 +22,31 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
 
 
-    public abstract class DataChange
+    public abstract class ValueChange
     {
         private List<object> _keyChain = new List<object>();
 
-        protected DataChange(DataChangeType changeType, object key, object value = null) : this(changeType, new List<object> {key}, value)
+        protected ValueChange(ChangeType changeType, object key, object value = null) : this(changeType, new List<object> {key}, value)
         {
             ChangeType = changeType;
             ForwardUp(key);
             Value = value;
         }
 
-        protected DataChange(DataChangeType changeType, IEnumerable<object> keyChain, object value = null)
+        protected ValueChange(ChangeType changeType, IEnumerable<object> keyChain, object value = null)
         {
             ChangeType = changeType;
             _keyChain = keyChain.ToList();
             Value = value;
         }
 
-        public DataChangeType ChangeType { get; }
+        public ChangeType ChangeType { get; }
         public IReadOnlyList<object> KeyChain => _keyChain;
         public object Value { get; }
 
-        public DataChange ForwardUp(object key) { return ReplicateType(ChangeType, _keyChain.Prepend(key), Value); }
+        public ValueChange ForwardUp(object key) { return ReplicateType(ChangeType, _keyChain.Prepend(key), Value); }
 
-        public DataChange ForwardDown(object key)
+        public ValueChange ForwardDown(object key)
         {
             if (EqualityComparer<object>.Default.Equals(key, _keyChain[0]))
             {
@@ -56,29 +56,29 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             throw new InvalidOperationException();
         }
 
-        public abstract DataChange ReplicateType(DataChangeType changeType, IEnumerable<object> keyChain, object value);
+        public abstract ValueChange ReplicateType(ChangeType changeType, IEnumerable<object> keyChain, object value);
     }
 
-    public class DataChange<TData> : DataChange
+    public class ValueChange<TData> : ValueChange
     {
-        internal DataChange(DataChangeType changeType, object key, TData value = default(TData)) : this(changeType, new List<object> {key}, value) { }
+        internal ValueChange(ChangeType changeType, object key, TData value = default(TData)) : this(changeType, new List<object> {key}, value) { }
 
-        internal DataChange(DataChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData)) : base(changeType, keyChain, value) { }
+        internal ValueChange(ChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData)) : base(changeType, keyChain, value) { }
 
         public new TData Value => (TData) base.Value;
 
-        public override DataChange ReplicateType(DataChangeType changeType, IEnumerable<object> keyChain, object value)
+        public override ValueChange ReplicateType(ChangeType changeType, IEnumerable<object> keyChain, object value)
         {
             return Create(changeType, keyChain, value is TData genValue ? genValue : default(TData));
         }
 
-        public static DataChange<TData> Create(DataChangeType changeType, object key, TData value = default(TData))
+        public static ValueChange<TData> Create(ChangeType changeType, object key, TData value = default(TData))
         {
-            return new DataChange<TData>(changeType, key, value);
+            return new ValueChange<TData>(changeType, key, value);
         }
-        public static DataChange<TData> Create(DataChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData))
+        public static ValueChange<TData> Create(ChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData))
         {
-            return new DataChange<TData>(changeType, keyChain, value);
+            return new ValueChange<TData>(changeType, keyChain, value);
         }
     }
 }
