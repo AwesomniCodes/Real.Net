@@ -65,7 +65,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         private void OnChangeIn(IEnumerable<DataChange> changes)
         {
-            foreach (var change in changes)
+            changes.ForEach(change =>
             {
                 //Handle Errors
                 if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
@@ -85,7 +85,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                 {
                     _subject.OnCompleted();
                 }
-            }
+            });
         }
     }
 }

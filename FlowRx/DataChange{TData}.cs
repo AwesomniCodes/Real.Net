@@ -20,6 +20,8 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         Request = 16,
     }
 
+
+
     public abstract class DataChange
     {
         private List<object> _keyChain = new List<object>();

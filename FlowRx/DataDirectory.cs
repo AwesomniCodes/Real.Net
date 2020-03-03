@@ -81,47 +81,46 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         private void OnChangeIn(IEnumerable<DataChange> changes)
         {
-            foreach (var change in changes)
+            changes.ForEach(change =>
             {
-                var curChange = change;
-                if (!EqualityComparer<object>.Default.Equals(Key, curChange.KeyChain[0]))
+                if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
                 {
                     throw new InvalidOperationException();
                 }
 
-                if (curChange.KeyChain.Count == 1)
+                if (change.KeyChain.Count == 1)
                 {
                     //TODO: The whole directory gets replaced
                     //item.OnNext(change);
                 }
                 else
                 {
-                    curChange = curChange.ForwardDown(Key);
+                    change = change.ForwardDown(Key);
 
                     IDataObject childDataObject;
 
-                    if (curChange.KeyChain.Count == 1 && curChange.ChangeType.HasFlag(DataChangeType.Created))
+                    if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(DataChangeType.Created))
                     {
-                        if (curChange.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
+                        if (change.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
                         {
-                            childDataObject = GetOrCreateDirectory(curChange.KeyChain[0]?.ToString());
+                            childDataObject = GetOrCreateDirectory(change.KeyChain[0]?.ToString());
                         }
                         else
                         {
                             MethodInfo method = GetType().GetMethod("GetOrCreate");
-                            MethodInfo generic = method.MakeGenericMethod(curChange.Value.GetType());
+                            MethodInfo generic = method.MakeGenericMethod(change.Value.GetType());
                             childDataObject = (IDataObject)generic.Invoke(this,
-                                new object[] { curChange.KeyChain[0], change.Value });
+                                new object[] { change.KeyChain[0], change.Value });
                         }
                     }
                     else
                     {
-                        childDataObject = Get(curChange.KeyChain[0]?.ToString());
+                        childDataObject = Get(change.KeyChain[0]?.ToString());
                     }
 
-                    childDataObject?.Changes.OnNext(curChange.Yield());
+                    childDataObject?.Changes.OnNext(change.Yield());
                 }
-            }
+            });
         }
 
         public void Copy(string sourceKey, string destinationKey)
