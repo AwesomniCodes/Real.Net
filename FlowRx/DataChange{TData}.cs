@@ -42,19 +42,19 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         public IReadOnlyList<object> KeyChain => _keyChain;
         public object Value { get; }
 
-        public DataChange ForwardUp(object key) { return CreateWithSameType(ChangeType, _keyChain.Prepend(key), Value); }
+        public DataChange ForwardUp(object key) { return ReplicateType(ChangeType, _keyChain.Prepend(key), Value); }
 
         public DataChange ForwardDown(object key)
         {
             if (EqualityComparer<object>.Default.Equals(key, _keyChain[0]))
             {
-                return CreateWithSameType(ChangeType, _keyChain.Skip(1), Value);
+                return ReplicateType(ChangeType, _keyChain.Skip(1), Value);
             }
 
             throw new InvalidOperationException();
         }
 
-        public abstract DataChange CreateWithSameType(DataChangeType changeType, IEnumerable<object> keyChain, object value);
+        public abstract DataChange ReplicateType(DataChangeType changeType, IEnumerable<object> keyChain, object value);
     }
 
     public class DataChange<TData> : DataChange
@@ -65,7 +65,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public new TData Value => (TData) base.Value;
 
-        public override DataChange CreateWithSameType(DataChangeType changeType, IEnumerable<object> keyChain, object value)
+        public override DataChange ReplicateType(DataChangeType changeType, IEnumerable<object> keyChain, object value)
         {
             return Create(changeType, keyChain, value is TData genValue ? genValue : default(TData));
         }
