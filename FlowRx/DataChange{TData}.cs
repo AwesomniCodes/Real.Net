@@ -6,9 +6,11 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using Awesomni.Codes.FlowRx.Utility;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
 
     [Flags]
     public enum ChangeType : int
@@ -62,5 +64,45 @@ namespace Awesomni.Codes.FlowRx
         {
             return new ValueChange<TData>(changeType, key, value);
         }
+    }
+
+    public static class ChangeExtensions
+    {
+
+        public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object Value) flatChange)
+        {
+            var sb = new StringBuilder();
+
+            foreach (var key in flatChange.KeyChain)
+            {
+                sb.Append($"[{key.ToString()}].");
+            }
+            
+            return $"{sb.ToString()}{flatChange.changeType}.{flatChange.Value}";
+        }
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this IEnumerable<SomeChange> changes, IEnumerable<object> curKeyChain = null)
+        {
+            return changes.SelectMany(change => change.Flattened(curKeyChain ?? Enumerable.Empty<object>()));
+        }
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this SomeChange change, IEnumerable<object> curKeyChain = null)
+        {
+            curKeyChain = curKeyChain ?? Enumerable.Empty<object>();
+
+            var keyChain = curKeyChain.Concat(change.Key.Yield());
+
+            if (change is ValueChange valueChange)
+            {
+                yield return (keyChain.ToList(), valueChange.ChangeType, valueChange.Value);
+            }
+
+            if (change is ChildChange childChange)
+            {
+                foreach (var flattenedChildItem in childChange.Changes.Flattened(keyChain))
+                {
+                    yield return flattenedChildItem;
+                }
+            }
+        }
+
     }
 }

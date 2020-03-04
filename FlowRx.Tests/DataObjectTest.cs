@@ -3,6 +3,7 @@ using Awesomni.Codes.FlowRx.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
 
@@ -27,6 +28,7 @@ namespace Awesomni.Codes.FlowRx.Tests
             testBool.OnNext(false);
 
             var snapshot = root.Changes.Snapshot();
+            var flattenedSnapshot = snapshot.SelectMany(changes => changes).Flattened().Select(fC => fC.ToDebugString()).ToList();
             Assert.IsTrue(true);
 
         }
