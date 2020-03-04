@@ -3,10 +3,19 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Linq;
 
-namespace Awesomni.Codes.FlowRx.Utility.Extensions
+namespace Awesomni.Codes.FlowRx.Utility
 {
     public static class RxExtensions
     {
+        public static IList<T> Snapshot<T>(this IObservable<T> observable)
+        {
+            List<T> snapshot = new List<T>();
+            using (observable.Subscribe(item => snapshot.Add(item)))
+            {
+                // Deliberately empty; subscribing will add everything to the list.
+            }
+            return snapshot;
+        }
         public static IObservable<long> CreateAutoResetInterval<TSource>(IObservable<TSource> resetter,
             TimeSpan timeSpan, bool immediate = false)
         {

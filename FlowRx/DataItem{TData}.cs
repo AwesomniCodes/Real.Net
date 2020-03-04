@@ -4,9 +4,9 @@
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Awesomni.Codes.FlowRx.DataSystem
+namespace Awesomni.Codes.FlowRx
 {
-    using Awesomni.Codes.FlowRx.Utility.Extensions;
+    using Awesomni.Codes.FlowRx.Utility;
     using System;
     using System.Collections.Generic;
     using System.Linq;

@@ -4,7 +4,7 @@
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Awesomni.Codes.FlowRx.DataSystem
+namespace Awesomni.Codes.FlowRx
 {
     using System.Collections.Generic;
     using System.Reactive.Subjects;
