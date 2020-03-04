@@ -15,6 +15,6 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public object Key { get; }
 
-        public abstract ISubject<IEnumerable<ValueChange>> Changes { get; }
+        public abstract ISubject<IEnumerable<SomeChange>> Changes { get; }
     }
 }

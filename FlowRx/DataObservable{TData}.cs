@@ -38,17 +38,17 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                 .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Key, Value).Yield())) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<IEnumerable<ValueChange<TData>>>()); //Avoid OnComplete
 
-            Changes = Subject.Create<IEnumerable<ValueChange>>(Observer.Create<IEnumerable<ValueChange>>(OnDataLinkNext), _dataChangeObservable);
+            Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _dataChangeObservable);
         }
 
 
         public TData Value { get; }
 
-        public override ISubject<IEnumerable<ValueChange>> Changes { get; }
+        public override ISubject<IEnumerable<SomeChange>> Changes { get; }
  
         public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
 
-        private void OnDataLinkNext(IEnumerable<ValueChange> changes)
+        private void OnChangesIn(IEnumerable<SomeChange> changes)
         {
             //Handle Errors
             throw new InvalidOperationException("DataObservable cannot be updated");

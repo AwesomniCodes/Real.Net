@@ -20,65 +20,47 @@ namespace Awesomni.Codes.FlowRx.DataSystem
         Request = 16,
     }
 
-
-
-    public abstract class ValueChange
+    public abstract class SomeChange
     {
-        private List<object> _keyChain = new List<object>();
+        public object Key { get; }
 
-        protected ValueChange(ChangeType changeType, object key, object value = null) : this(changeType, new List<object> {key}, value)
+        protected SomeChange(object key) => Key = key;
+    }
+
+    public class ChildChange : SomeChange
+    {
+        private ChildChange(object key, IEnumerable<SomeChange> changes) : base(key)
         {
-            ChangeType = changeType;
-            ForwardUp(key);
-            Value = value;
+            Changes = changes;
         }
 
-        protected ValueChange(ChangeType changeType, IEnumerable<object> keyChain, object value = null)
+        public IEnumerable<SomeChange> Changes { get; private set; }
+
+        public static ChildChange Create(object key, IEnumerable<SomeChange> changes) => new ChildChange(key, changes);
+    }
+
+    public abstract class ValueChange : SomeChange
+    {
+        protected ValueChange(ChangeType changeType, object key, object value = null) : base(key)
         {
             ChangeType = changeType;
-            _keyChain = keyChain.ToList();
             Value = value;
         }
 
         public ChangeType ChangeType { get; }
-        public IReadOnlyList<object> KeyChain => _keyChain;
+
         public object Value { get; }
-
-        public ValueChange ForwardUp(object key) { return ReplicateType(ChangeType, _keyChain.Prepend(key), Value); }
-
-        public ValueChange ForwardDown(object key)
-        {
-            if (EqualityComparer<object>.Default.Equals(key, _keyChain[0]))
-            {
-                return ReplicateType(ChangeType, _keyChain.Skip(1), Value);
-            }
-
-            throw new InvalidOperationException();
-        }
-
-        public abstract ValueChange ReplicateType(ChangeType changeType, IEnumerable<object> keyChain, object value);
     }
 
     public class ValueChange<TData> : ValueChange
     {
-        internal ValueChange(ChangeType changeType, object key, TData value = default(TData)) : this(changeType, new List<object> {key}, value) { }
-
-        internal ValueChange(ChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData)) : base(changeType, keyChain, value) { }
+        internal ValueChange(ChangeType changeType, object key, TData value = default(TData)) : base(changeType, key, value) { }
 
         public new TData Value => (TData) base.Value;
-
-        public override ValueChange ReplicateType(ChangeType changeType, IEnumerable<object> keyChain, object value)
-        {
-            return Create(changeType, keyChain, value is TData genValue ? genValue : default(TData));
-        }
 
         public static ValueChange<TData> Create(ChangeType changeType, object key, TData value = default(TData))
         {
             return new ValueChange<TData>(changeType, key, value);
-        }
-        public static ValueChange<TData> Create(ChangeType changeType, IEnumerable<object> keyChain, TData value = default(TData))
-        {
-            return new ValueChange<TData>(changeType, keyChain, value);
         }
     }
 }

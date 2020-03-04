@@ -9,6 +9,7 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     using Awesomni.Codes.FlowRx.Utility.Extensions;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reactive;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
@@ -30,12 +31,12 @@ namespace Awesomni.Codes.FlowRx.DataSystem
                         pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, Key, value).Yield())))
                 .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
-            Changes = Subject.Create<IEnumerable<ValueChange>>(Observer.Create<IEnumerable<ValueChange>>(OnChangeIn), _outObservable);
+            Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _outObservable);
         }
 
         public TData Value => _subject.Value;
 
-        public override ISubject<IEnumerable<ValueChange>> Changes { get; }
+        public override ISubject<IEnumerable<SomeChange>> Changes { get; }
         public void OnCompleted() { _subject.OnCompleted(); }
 
         public void OnError(Exception error)
@@ -63,13 +64,13 @@ namespace Awesomni.Codes.FlowRx.DataSystem
             _isDisposed = true;
         }
 
-        private void OnChangeIn(IEnumerable<ValueChange> changes)
+        private void OnChangesIn(IEnumerable<SomeChange> changes)
         {
-            changes.ForEach(change =>
+            changes.Cast<ValueChange<TData>>().ForEach(change =>
             {
                 //Handle Errors
                 if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
-                if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]) || change.KeyChain.Count != 1)
+                if (!EqualityComparer<object>.Default.Equals(Key, change.Key))
                     OnError(new InvalidOperationException("Invalid key routing. KeyChain is invalid for this DataItem"));
 
                 if (change.ChangeType.HasFlag(ChangeType.Modify))

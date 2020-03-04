@@ -13,6 +13,6 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     {
         object Key { get; }
 
-        ISubject<IEnumerable<ValueChange>> Changes { get; }
+        ISubject<IEnumerable<SomeChange>> Changes { get; }
     }
 }

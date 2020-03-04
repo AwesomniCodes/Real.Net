@@ -18,53 +18,47 @@ namespace Awesomni.Codes.FlowRx.DataSystem
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataDirectory : DataObject, IDataDirectory // , IEnumerable<DataObject>
+    public class DataDirectory : DataObject, IDataDirectory
     {
         private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
-        private readonly ISubject<IEnumerable<ValueChange>> _outSubject;
+        private readonly ISubject<IEnumerable<SomeChange>> _outSubject;
 
         public DataDirectory(object key) : base(key)
         {
             item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
 
-            _outSubject = new Subject<IEnumerable<ValueChange>>();
-            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => changes.Select(change => change.ForwardUp(Key))));
+            _outSubject = new Subject<IEnumerable<SomeChange>>();
+            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => ChildChange.Create(Key,changes).Yield()));
             var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
-            Changes = Subject.Create<IEnumerable<ValueChange>>(Observer.Create<IEnumerable<ValueChange>>(OnChangeIn), outObservable);
+            Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), outObservable);
         }
 
-        public override ISubject<IEnumerable<ValueChange>> Changes { get; }
+        public override ISubject<IEnumerable<SomeChange>> Changes { get; }
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
         public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
         {
-            IDataItem<TData> data;
-            if (item.Value.Lookup(key).ValueOrDefault() is IDataItem<TData> dataItem)
-            {
-                data = dataItem;
-            }
-            else
+            IDataItem<TData> data = item.Value.Lookup(key).ValueOrDefault() as IDataItem<TData>;
+
+            if (data == null)
             {
                 data = new DataItem<TData>(key, value);
                 item.Value.AddOrUpdate(data);
             }
+
             return data;
         }
 
         public IDataDirectory GetOrCreateDirectory(string key)
         {
-            IDataDirectory data;
-            if (item.Value.Lookup(key).ValueOrDefault() is IDataDirectory dataDirectory)
-            {
-                data = dataDirectory;
-            }
-            else
+            IDataDirectory data = item.Value.Lookup(key).ValueOrDefault() as IDataDirectory;
+
+            if (data == null)
             {
                 data = new DataDirectory(key);
                 item.Value.AddOrUpdate((IDataObject)data);
-                _outSubject.OnNext(ValueChange<IDataDirectory>.Create(ChangeType.Created, key).ForwardUp(Key).Yield());
             }
 
             return data;
@@ -79,46 +73,43 @@ namespace Awesomni.Codes.FlowRx.DataSystem
 
         public void Delete(string key) {  }
 
-        private void OnChangeIn(IEnumerable<ValueChange> changes)
+        private void OnChangesIn(IEnumerable<SomeChange> changes)
         {
             changes.ForEach(change =>
             {
-                if (!EqualityComparer<object>.Default.Equals(Key, change.KeyChain[0]))
+                if (!EqualityComparer<object>.Default.Equals(Key, change.Key))
                 {
                     throw new InvalidOperationException();
                 }
 
-                if (change.KeyChain.Count == 1)
+                if (change is ValueChange<IDataDirectory>)
                 {
                     //TODO: The whole directory gets replaced
                     //item.OnNext(change);
                 }
-                else
+                else if(change is ChildChange childChange)
                 {
-                    change = change.ForwardDown(Key);
-
-                    IDataObject childDataObject;
-
-                    if (change.KeyChain.Count == 1 && change.ChangeType.HasFlag(ChangeType.Created))
+                    childChange.Changes.ForEach(innerChange =>
                     {
-                        if (change.GetType().GenericTypeArguments?.FirstOrDefault() == typeof(IDataDirectory))
+                        if (innerChange is ValueChange innerValueChange && innerValueChange.ChangeType == ChangeType.Created)
                         {
-                            childDataObject = GetOrCreateDirectory(change.KeyChain[0]?.ToString());
+                            if (innerChange is ValueChange<IDataDirectory> innerDirectoryValueChange)
+                            {
+                                GetOrCreateDirectory(innerChange.Key.ToString());
+                            }
+                            else
+                            {
+                                MethodInfo method = GetType().GetMethod("GetOrCreate");
+                                MethodInfo generic = method.MakeGenericMethod(innerValueChange.Value.GetType());
+                                generic.Invoke(this, new object[] { innerValueChange.Key, innerValueChange.Value });
+                            }
                         }
                         else
                         {
-                            MethodInfo method = GetType().GetMethod("GetOrCreate");
-                            MethodInfo generic = method.MakeGenericMethod(change.Value.GetType());
-                            childDataObject = (IDataObject)generic.Invoke(this,
-                                new object[] { change.KeyChain[0], change.Value });
+                            Get(innerChange.Key.ToString()).Changes.OnNext(innerChange.Yield());
                         }
-                    }
-                    else
-                    {
-                        childDataObject = Get(change.KeyChain[0]?.ToString());
-                    }
 
-                    childDataObject?.Changes.OnNext(change.Yield());
+                    });
                 }
             });
         }
