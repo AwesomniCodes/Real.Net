@@ -11,10 +11,6 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class DataObject : IDataObject
     {
-        protected DataObject(object key) { Key = key; }
-
-        public object Key { get; }
-
         public abstract ISubject<IEnumerable<SomeChange>> Changes { get; }
     }
 }

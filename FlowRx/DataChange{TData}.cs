@@ -24,15 +24,15 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class SomeChange
     {
-        public object Key { get; }
-
-        protected SomeChange(object key) => Key = key;
     }
 
     public class ChildChange : SomeChange
     {
-        private ChildChange(object key, IEnumerable<SomeChange> changes) : base(key)
+        public object Key { get; }
+
+        private ChildChange(object key, IEnumerable<SomeChange> changes)
         {
+            Key = key;
             Changes = changes;
         }
 
@@ -43,7 +43,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class ValueChange : SomeChange
     {
-        protected ValueChange(ChangeType changeType, object key, object value = null) : base(key)
+        protected ValueChange(ChangeType changeType, object value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -56,13 +56,13 @@ namespace Awesomni.Codes.FlowRx
 
     public class ValueChange<TData> : ValueChange
     {
-        internal ValueChange(ChangeType changeType, object key, TData value = default(TData)) : base(changeType, key, value) { }
+        internal ValueChange(ChangeType changeType, TData value = default(TData)) : base(changeType, value) { }
 
         public new TData Value => (TData) base.Value;
 
-        public static ValueChange<TData> Create(ChangeType changeType, object key, TData value = default(TData))
+        public static ValueChange<TData> Create(ChangeType changeType, TData value = default(TData))
         {
-            return new ValueChange<TData>(changeType, key, value);
+            return new ValueChange<TData>(changeType, value);
         }
     }
 
@@ -72,13 +72,13 @@ namespace Awesomni.Codes.FlowRx
         public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object Value) flatChange)
         {
             var sb = new StringBuilder();
-
+            sb.Append('.');
             foreach (var key in flatChange.KeyChain)
             {
-                sb.Append($"[{key.ToString()}].");
+                sb.Append($"/{key.ToString()}");
             }
             
-            return $"{sb.ToString()}{flatChange.changeType}.{flatChange.Value}";
+            return $"{sb.ToString()} - {flatChange.changeType}: {flatChange.Value}";
         }
         public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this IEnumerable<SomeChange> changes, IEnumerable<object> curKeyChain = null)
         {
@@ -86,17 +86,17 @@ namespace Awesomni.Codes.FlowRx
         }
         public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this SomeChange change, IEnumerable<object> curKeyChain = null)
         {
-            curKeyChain = curKeyChain ?? Enumerable.Empty<object>();
-
-            var keyChain = curKeyChain.Concat(change.Key.Yield());
+            var keyChain = (curKeyChain ?? Enumerable.Empty<object>()).ToList();
 
             if (change is ValueChange valueChange)
             {
-                yield return (keyChain.ToList(), valueChange.ChangeType, valueChange.Value);
+                yield return (keyChain, valueChange.ChangeType, valueChange.Value);
             }
 
             if (change is ChildChange childChange)
             {
+                keyChain = keyChain.Concat(childChange.Key.Yield()).ToList();
+
                 foreach (var flattenedChildItem in childChange.Changes.Flattened(keyChain))
                 {
                     yield return flattenedChildItem;

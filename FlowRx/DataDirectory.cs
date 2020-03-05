@@ -20,32 +20,32 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataDirectory : DataObject, IDataDirectory
     {
-        private readonly BehaviorSubject<SourceCache<IDataObject, string>> item;
+        private readonly BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>> item;
         private readonly ISubject<IEnumerable<SomeChange>> _outSubject;
 
-        public DataDirectory(object key) : base(key)
+        public DataDirectory()
         {
-            item = new BehaviorSubject<SourceCache<IDataObject, string>>(new SourceCache<IDataObject, string>(o => o.Key.ToString()));
+            item = new BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>>(new SourceCache<(string Key, IDataObject DataObject), string>(o => o.Key.ToString()));
 
             _outSubject = new Subject<IEnumerable<SomeChange>>();
-            var childChangesObservable = item.Switch().MergeMany(dO => dO.Changes.Select(changes => ChildChange.Create(Key,changes).Yield()));
-            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Created, Key).Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => ChildChange.Create(dO.Key,changes).Yield()));
+            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Created).Yield()).Concat(_outSubject.Merge(childChangesObservable));
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), outObservable);
         }
 
         public override ISubject<IEnumerable<SomeChange>> Changes { get; }
-        public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.GetEnumerator(); }
+        public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.Select(dO => dO.DataObject).GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData))
+        public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default)
         {
-            IDataItem<TData> data = item.Value.Lookup(key).ValueOrDefault() as IDataItem<TData>;
+            IDataItem<TData> data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataItem<TData>;
 
             if (data == null)
             {
-                data = new DataItem<TData>(key, value);
-                item.Value.AddOrUpdate(data);
+                data = new DataItem<TData>();
+                item.Value.AddOrUpdate((key, data));
             }
 
             return data;
@@ -53,12 +53,12 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataDirectory GetOrCreateDirectory(string key)
         {
-            IDataDirectory data = item.Value.Lookup(key).ValueOrDefault() as IDataDirectory;
+            IDataDirectory data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataDirectory;
 
             if (data == null)
             {
-                data = new DataDirectory(key);
-                item.Value.AddOrUpdate((IDataObject)data);
+                data = new DataDirectory();
+                item.Value.AddOrUpdate((key, data));
             }
 
             return data;
@@ -68,7 +68,7 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataObject Get(string key)
         {
-            return item.Value.Lookup(key?.ToString()).Value;
+            return item.Value.Lookup(key?.ToString()).Value.DataObject;
         }
 
         public void Delete(string key) {  }
@@ -77,11 +77,6 @@ namespace Awesomni.Codes.FlowRx
         {
             changes.ForEach(change =>
             {
-                if (!EqualityComparer<object>.Default.Equals(Key, change.Key))
-                {
-                    throw new InvalidOperationException();
-                }
-
                 if (change is ValueChange<IDataDirectory>)
                 {
                     //TODO: The whole directory gets replaced
@@ -95,18 +90,18 @@ namespace Awesomni.Codes.FlowRx
                         {
                             if (innerChange is ValueChange<IDataDirectory> innerDirectoryValueChange)
                             {
-                                GetOrCreateDirectory(innerChange.Key.ToString());
+                                GetOrCreateDirectory(childChange.Key.ToString());
                             }
                             else
                             {
                                 MethodInfo method = GetType().GetMethod("GetOrCreate");
                                 MethodInfo generic = method.MakeGenericMethod(innerValueChange.Value.GetType());
-                                generic.Invoke(this, new object[] { innerValueChange.Key, innerValueChange.Value });
+                                generic.Invoke(this, new object[] { childChange.Key, innerValueChange.Value });
                             }
                         }
                         else
                         {
-                            Get(innerChange.Key.ToString()).Changes.OnNext(innerChange.Yield());
+                            Get(childChange.Key.ToString()).Changes.OnNext(innerChange.Yield());
                         }
 
                     });

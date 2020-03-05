@@ -18,12 +18,12 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _dataChangeObservable;
         private readonly IObservable<TData> _observable;
 
-        internal DataObservable(object key, IObservable<TData> observable, TData initialValue = default(TData)) : base(key)
+        internal DataObservable(IObservable<TData> observable, TData initialValue = default(TData))
         {
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataChangeObservable = Observable.Return(ValueChange<TData>.Create(ChangeType.Connected, Key, initialValue).Yield())
+            _dataChangeObservable = Observable.Return(ValueChange<TData>.Create(ChangeType.Connected, initialValue).Yield())
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
@@ -33,9 +33,9 @@ namespace Awesomni.Codes.FlowRx
 
                     isFirst = false;
 
-                    return Observable.Return(ValueChange<TData>.Create(ChangeType.Modify, Key, value).Yield());
+                    return Observable.Return(ValueChange<TData>.Create(ChangeType.Modify, value).Yield());
                 }))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Key, Value).Yield())) //When completed it means for DataChange item is removed
+                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Value).Yield())) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<IEnumerable<ValueChange<TData>>>()); //Avoid OnComplete
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _dataChangeObservable);

@@ -20,16 +20,16 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
         private bool _isDisposed;
 
-        internal DataItem(object key, TData initialValue = default(TData)) : base(key)
+        internal DataItem(TData initialValue = default(TData))
         {
             _subject = new BehaviorSubject<TData>(initialValue);
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Created, Key, value).Yield())
+                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Created, value).Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, Key, value).Yield())))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Key, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, value).Yield())))
+                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _outObservable);
         }
@@ -70,8 +70,6 @@ namespace Awesomni.Codes.FlowRx
             {
                 //Handle Errors
                 if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
-                if (!EqualityComparer<object>.Default.Equals(Key, change.Key))
-                    OnError(new InvalidOperationException("Invalid key routing. KeyChain is invalid for this DataItem"));
 
                 if (change.ChangeType.HasFlag(ChangeType.Modify))
                 {

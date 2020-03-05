@@ -11,8 +11,6 @@ namespace Awesomni.Codes.FlowRx
 
     public interface IDataObject
     {
-        object Key { get; }
-
         ISubject<IEnumerable<SomeChange>> Changes { get; }
     }
 }
