@@ -14,6 +14,8 @@ namespace Awesomni.Codes.FlowRx
         IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData));
 
         IDataDirectory GetOrCreateDirectory(string key);
+        
+        IDataDirectory GetDirectory(string key) => (IDataDirectory)Get(key);
 
         IDataItem<TData> Get<TData>(string key);
 

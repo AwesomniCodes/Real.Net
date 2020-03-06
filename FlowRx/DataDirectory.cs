@@ -66,6 +66,8 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataItem<TData> Get<TData>(string key) => (IDataItem<TData>) Get(key);
 
+        public IDataDirectory GetDirectory(string key) => (IDataDirectory) Get(key);
+
         public IDataObject Get(string key)
         {
             return item.Value.Lookup(key?.ToString()).Value.DataObject;

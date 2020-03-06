@@ -14,8 +14,105 @@ namespace Awesomni.Codes.FlowRx.Tests
 {
     public class DataObjectTest
     {
+        public static IDataDirectory GetCommonDirectory()
+        {
+            var root = new DataDirectory();
+            var subFolder = root.GetOrCreateDirectory("TestDirectory");
+            var testString = subFolder.GetOrCreate("TestString", "TestString");
+            var testInt = subFolder.GetOrCreate("TestInt", 23);
+            var testDouble = subFolder.GetOrCreate("TestDouble", 23.0);
+            var testBool = subFolder.GetOrCreate("TestBool", true);
+            return root;
+        }
+
+
+        public static IDataDirectory GetMirroredDirectory(IDataDirectory directory)
+        {
+            var mirror = new DataDirectory();
+
+            directory.Changes.Subscribe(mirror.Changes);
+
+            return mirror;
+        }
+
+
+        public static IDataDirectory GetCommonDirectoryWithCommonModification()
+        {
+            var root = GetCommonDirectory();
+            var subFolder = root.GetDirectory("TestDirectory");
+            var testString = subFolder.Get<string>("TestString");
+            var testInt = subFolder.Get<int>("TestInt");
+            var testDouble = subFolder.Get<double>("TestDouble");
+            var testBool = subFolder.Get<bool>("TestBool");
+
+            testInt.OnNext(20);
+            testInt.OnCompleted();
+            testDouble.OnNext(1.5);
+            testInt.OnNext(24);
+            testString.OnNext("NewTestString");
+            testBool.OnNext(false);
+            return root;
+        }
+
+        public static IEnumerable<object[]> GetCommonTestDirectoriesObjects()
+        {
+            yield return new object[] { GetCommonDirectory() };
+            yield return new object[] { GetCommonDirectoryWithCommonModification() };
+            yield return new object[] { GetMirroredDirectory(GetCommonDirectory()) };
+        }
+
+        public static IEnumerable<object[]> GetCommonTestDirectoriesWithFlattenedDefinitions()
+        {
+            yield return new object[] { GetCommonDirectory(),  };
+            yield return new object[] { GetCommonDirectoryWithCommonModification() };
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCommonTestDirectoriesObjects))]
+        public void Mirroring_A_Directory_Is_Working_As_Expected(IDataDirectory root)
+        {
+            var mirror = GetMirroredDirectory(root);
+            var mirrorSnapshot = mirror.Changes
+                .Snapshot()
+                .SelectMany(changes => changes)
+                .Flattened()
+                .Select(fC => fC.ToDebugString())
+                .ToList();
+
+            var rootSnapshot = root.Changes
+                .Snapshot()
+                .SelectMany(changes => changes)
+                .Flattened()
+                .Select(fC => fC.ToDebugString())
+                .ToList();
+
+            Assert.Equal(mirrorSnapshot, rootSnapshot);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetCommonTestDirectoriesObjects))]
+        public void When_Subscribing_Multiple_Times_The_Same_Definition_Is_Returned(IDataDirectory root)
+        {
+            var snapshot1 = root.Changes
+                .Snapshot()
+                .SelectMany(changes => changes)
+                .Flattened()
+                .Select(fC => fC.ToDebugString())
+                .ToList();
+
+            var snapshot2 = root.Changes
+                .Snapshot()
+                .SelectMany(changes => changes)
+                .Flattened()
+                .Select(fC => fC.ToDebugString())
+                .ToList();
+
+            Assert.Equal(snapshot1, snapshot2);
+        }
+
+
         [Fact]
-        public void MultipleSubscriptionsReturnSameTreeDefinition()
+        public void When_Subscribing_To_A_Data_Object_Specific_Definition_Is_Returned()
         {
             var root = new DataDirectory();
             var subFolder = root.GetOrCreateDirectory("TestDirectory");
