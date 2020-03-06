@@ -54,5 +54,11 @@ namespace Awesomni.Codes.FlowRx.Utility
             return source.Scan((Previous: default(TValue), New: default(TValue)),
                 (acc, current) => (Previous: acc.New, New: current));
         }
+
+
+        public static IObservable<IList<T>> SynchronousBuffer<T>(this IObservable<T> observable)
+        {
+            return observable.Select(_ => new List<T>());
+        }
     }
 }
