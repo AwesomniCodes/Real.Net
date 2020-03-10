@@ -29,7 +29,7 @@ namespace Awesomni.Codes.FlowRx
 
             _outSubject = new Subject<IEnumerable<SomeChange>>();
             var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => ChildChange.Create(dO.Key,changes).Yield()));
-            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Created).Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Create).Yield()).Concat(_outSubject.Merge(childChangesObservable));
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), outObservable);
         }
 
@@ -70,10 +70,39 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataObject Get(string key)
         {
-            return item.Value.Lookup(key?.ToString()).Value.DataObject;
+            return item.Value.Lookup(key).Value.DataObject;
         }
 
-        public void Delete(string key) {  }
+        public bool TryGet(string key, out IDataObject dataObject)
+        {
+            dataObject = item.Value.Lookup(key).ValueOrDefault().DataObject;
+            return dataObject != null;
+        }
+
+        public bool TryGetDirectory(string key, out IDataDirectory dataDirectory)
+        {
+            TryGet(key, out var dataObject);
+            return (dataDirectory = dataObject as IDataDirectory) != null;
+        }
+
+        public bool TryGet<TData>(string key, out IDataItem<TData> dataItem)
+        {
+            TryGet(key, out var dataObject);
+            return (dataItem = dataObject as IDataItem<TData>) != null;
+        }
+
+        public void Complete(string key)
+        {
+            var dOItem = item.Value.Lookup(key).ValueOrDefault();
+            item.Value.Remove(key);
+            dOItem.DataObject?.Changes.OnCompleted();
+        }
+
+        public void Remove(string key)
+        {
+            var dOItem = item.Value.Lookup(key).ValueOrDefault();
+            item.Value.Remove(key);
+        }
 
         private void OnChangesIn(IEnumerable<SomeChange> changes)
         {
@@ -88,7 +117,7 @@ namespace Awesomni.Codes.FlowRx
                 {
                     childChange.Changes.ForEach(innerChange =>
                     {
-                        if (innerChange is ValueChange innerValueChange && innerValueChange.ChangeType == ChangeType.Created)
+                        if (innerChange is ValueChange innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                         {
                             if (innerChange is ValueChange<IDataDirectory> innerDirectoryValueChange)
                             {

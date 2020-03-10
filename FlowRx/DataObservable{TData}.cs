@@ -23,7 +23,7 @@ namespace Awesomni.Codes.FlowRx
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataChangeObservable = Observable.Return(ValueChange<TData>.Create(ChangeType.Connected, initialValue).Yield())
+            _dataChangeObservable = Observable.Return(ValueChange<TData>.Create(ChangeType.Connect, initialValue).Yield())
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))

@@ -15,11 +15,13 @@ namespace Awesomni.Codes.FlowRx
     [Flags]
     public enum ChangeType : int
     {
-        Created = 1,
-        Connected = 2,
+        Create = 1,
+        Connect = 2,
         Modify = 4,
         Remove = 8,
-        Request = 16,
+        Complete = 16,
+        Request = 32,
+        Error = 64,
     }
 
     public abstract class SomeChange

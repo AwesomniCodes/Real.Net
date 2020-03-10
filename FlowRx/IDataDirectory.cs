@@ -21,7 +21,7 @@ namespace Awesomni.Codes.FlowRx
 
         IDataObject Get(string key);
 
-        void Delete(string key);
+        void Remove(string key);
 
         void Copy(string sourceKey, string destinationKey);
 

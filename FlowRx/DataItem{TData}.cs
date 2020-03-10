@@ -26,7 +26,7 @@ namespace Awesomni.Codes.FlowRx
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Created, value).Yield())
+                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Create, value).Yield())
                     .Merge(
                         pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, value).Yield())))
                 .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, _subject.Value).Yield())); //When completed it means for DataChange item is removed
