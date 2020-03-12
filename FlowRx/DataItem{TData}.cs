@@ -23,16 +23,14 @@ namespace Awesomni.Codes.FlowRx
 
         public static IDataItem Create(object initialValue)
         {
-            MethodInfo method = typeof(DataItem<>).GetMethod(nameof(Create));
-            MethodInfo generic = method.MakeGenericMethod(initialValue.GetType());
-            return (IDataItem) generic.Invoke(null, new object[] { initialValue });
+            MethodInfo method = typeof(DataItem<>).MakeGenericType(initialValue.GetType()).GetMethod(nameof(Create), BindingFlags.Static | BindingFlags.Public);
+            return (IDataItem)method.Invoke(null, new object[] { initialValue });
         }
 
         public static IDataItem Create(Type type)
         {
-            MethodInfo method = typeof(DataItem<>).GetMethod(nameof(Create));
-            MethodInfo generic = method.MakeGenericMethod(type);
-            return (IDataItem)generic.Invoke(null, new object?[] { type.GetDefault() });
+            MethodInfo method = typeof(DataItem<>).MakeGenericType(type).GetMethod(nameof(Create), BindingFlags.Static | BindingFlags.Public);
+            return (IDataItem)method.Invoke(null, new object?[] { type.GetDefault() });
         }
     }
 
@@ -42,7 +40,7 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
         private bool _isDisposed;
 
-        internal static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+        public static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
 
         private DataItem(TData initialValue = default)
         {

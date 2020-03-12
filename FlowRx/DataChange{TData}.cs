@@ -57,16 +57,14 @@ namespace Awesomni.Codes.FlowRx
 
         public static ValueChange Create(ChangeType changeType, object value)
         {
-            MethodInfo method = typeof(ValueChange<>).GetMethod(nameof(ValueChange.Create));
-            MethodInfo generic = method.MakeGenericMethod(value.GetType());
-            return (ValueChange) generic.Invoke(null, new object[] { changeType, value });
+            MethodInfo method = typeof(ValueChange<>).MakeGenericType(value.GetType()).GetMethod(nameof(ValueChange.Create), BindingFlags.Static | BindingFlags.Public);
+            return (ValueChange)method.Invoke(null, new object[] { changeType, value });
         }
 
         public static ValueChange Create(ChangeType changeType, Type type)
         {
-            MethodInfo method = typeof(ValueChange<>).GetMethod(nameof(ValueChange.Create));
-            MethodInfo generic = method.MakeGenericMethod(type);
-            return (ValueChange)generic.Invoke(null, new object?[] { changeType, type.GetDefault() });
+            MethodInfo method = typeof(ValueChange<>).MakeGenericType(type).GetMethod(nameof(ValueChange.Create), BindingFlags.Static | BindingFlags.Public);
+            return (ValueChange)method.Invoke(null, new object?[] { changeType, type.GetDefault() });
         }
     }
 
