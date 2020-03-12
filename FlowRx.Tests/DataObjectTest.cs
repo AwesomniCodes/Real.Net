@@ -133,7 +133,7 @@ namespace Awesomni.Codes.FlowRx.Tests
             Assert.Equal(snapshot1, snapshot2);
         }
 
-        [Fact]
+        [Fact(Skip = "ExperimentalTest")]
         public async Task SyncBufferTest()
         {
             var i1 = new BehaviorSubject<int>(1);
