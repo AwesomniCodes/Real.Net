@@ -65,7 +65,12 @@ namespace Awesomni.Codes.FlowRx
             return data;
         }
 
-        public IDataItem Create(string key, Type type) => Create(key, type.GetDefault());
+        public IDataItem Create(string key, Type type)
+        {
+            var data = DataItem.Create(type);
+            Connect(key, data);
+            return data;
+        }
 
         public IDataItem<TData> Create<TData>(string key, TData value = default)
         {

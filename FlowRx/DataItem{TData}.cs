@@ -28,7 +28,12 @@ namespace Awesomni.Codes.FlowRx
             return (IDataItem) generic.Invoke(null, new object[] { initialValue });
         }
 
-        public static IDataItem Create(Type type) => Create(type.GetDefault());
+        public static IDataItem Create(Type type)
+        {
+            MethodInfo method = typeof(DataItem<>).GetMethod(nameof(Create));
+            MethodInfo generic = method.MakeGenericMethod(type);
+            return (IDataItem)generic.Invoke(null, new object?[] { type.GetDefault() });
+        }
     }
 
     public class DataItem<TData> : DataItem, IDataItem<TData>
