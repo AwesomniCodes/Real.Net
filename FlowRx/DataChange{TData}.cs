@@ -40,7 +40,7 @@ namespace Awesomni.Codes.FlowRx
 
         public IEnumerable<SomeChange> Changes { get; private set; }
 
-        public static ChildChange Create(object key, IEnumerable<SomeChange> changes) => new ChildChange(key, changes);
+        public static Func<ChildChange> Creation(object key, IEnumerable<SomeChange> changes) => () => new ChildChange(key, changes);
     }
 
     public abstract class ValueChange : SomeChange
@@ -55,16 +55,16 @@ namespace Awesomni.Codes.FlowRx
 
         public object? Value { get; }
 
-        public static ValueChange Create(ChangeType changeType, object value)
+        public static Func<ValueChange> Creation(ChangeType changeType, object value)
         {
-            MethodInfo method = typeof(ValueChange<>).MakeGenericType(value.GetType()).GetMethod(nameof(ValueChange.Create), BindingFlags.Static | BindingFlags.Public);
-            return (ValueChange)method.Invoke(null, new object[] { changeType, value });
+            MethodInfo method = typeof(ValueChange<>).MakeGenericType(value.GetType()).GetMethod(nameof(ValueChange.Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<ValueChange>)method.Invoke(null, new object[] { changeType, value });
         }
 
-        public static ValueChange Create(ChangeType changeType, Type type)
+        public static Func<ValueChange> Creation(ChangeType changeType, Type type)
         {
-            MethodInfo method = typeof(ValueChange<>).MakeGenericType(type).GetMethod(nameof(ValueChange.Create), BindingFlags.Static | BindingFlags.Public);
-            return (ValueChange)method.Invoke(null, new object?[] { changeType, type.GetDefault() });
+            MethodInfo method = typeof(ValueChange<>).MakeGenericType(type).GetMethod(nameof(ValueChange.Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<ValueChange>)method.Invoke(null, new object?[] { changeType, type.GetDefault() });
         }
     }
 
@@ -74,10 +74,8 @@ namespace Awesomni.Codes.FlowRx
 
         public new TData Value => base.Value is TData tValue ? tValue : default;
 
-        public static ValueChange<TData> Create(ChangeType changeType, TData value = default)
-        {
-            return new ValueChange<TData>(changeType, value);
-        }
+        public static Func<ValueChange<TData>> Creation(ChangeType changeType, TData value = default)
+            => () => new ValueChange<TData>(changeType, value);
     }
 
     public static class ChangeExtensions

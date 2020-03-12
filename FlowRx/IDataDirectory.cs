@@ -12,21 +12,12 @@ namespace Awesomni.Codes.FlowRx
 
     public interface IDataDirectory : IDataObject, IEnumerable<IDataObject>
     {
-        IDataItem Create(string key, object value);
-        IDataItem Create(string key, Type type);
-        IDataItem<TData> Create<TData>(string key, TData value = default);
+        TDataObject Create<TDataObject>(string key, Func<TDataObject> creator) where TDataObject : IDataObject;
 
-        IDataDirectory CreateDirectory(string key);
+        TDataObject GetOrCreate<TDataObject>(string key, Func<TDataObject> creator) where TDataObject : class, IDataObject
+            => Get<TDataObject>(key) ?? Create(key, creator);
 
-        IDataItem GetOrCreate(string key, object value) => (IDataItem?) Get(key) ?? Create(key, value);
-        IDataItem GetOrCreate(string key, Type type) => (IDataItem?) Get(key) ?? Create(key, type);
-        IDataItem<TData> GetOrCreate<TData>(string key, TData value = default) => Get<TData>(key) ?? Create(key, value);
-        IDataDirectory GetOrCreateDirectory(string key) => GetDirectory(key) ?? CreateDirectory(key);
-
-        IDataObject? Get(string key);
-        IDataItem<TData>? Get<TData>(string key) => (IDataItem<TData>?)Get(key);
-        IDataDirectory? GetDirectory(string key) => (IDataDirectory?) Get(key);
-
+        TDataObject? Get<TDataObject>(string key) where TDataObject : class, IDataObject;
 
 
         void Connect(string key, IDataObject dataObject);

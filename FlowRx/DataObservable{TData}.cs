@@ -18,14 +18,14 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _dataChangeObservable;
         private readonly IObservable<TData> _observable;
 
-        public static DataObservable<TData> Create(IObservable<TData> observable, TData initialValue = default)
-            => new DataObservable<TData>(observable, initialValue);
+        public static Func<DataObservable<TData>> Creation(IObservable<TData> observable, TData initialValue = default)
+            => () => new DataObservable<TData>(observable, initialValue);
         private DataObservable(IObservable<TData> observable, TData initialValue = default)
         {
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataChangeObservable = Observable.Return(ValueChange<TData>.Create(ChangeType.Connect, initialValue).Yield())
+            _dataChangeObservable = Observable.Return(ValueChange<TData>.Creation(ChangeType.Connect, initialValue)().Yield())
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
@@ -35,9 +35,9 @@ namespace Awesomni.Codes.FlowRx
 
                     isFirst = false;
 
-                    return Observable.Return(ValueChange<TData>.Create(ChangeType.Modify, value).Yield());
+                    return Observable.Return(ValueChange<TData>.Creation(ChangeType.Modify, value)().Yield());
                 }))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Complete, Value).Yield())) //When completed it means for DataChange item is removed
+                .Concat(Observable.Return(ValueChange<TData>.Creation(ChangeType.Complete, Value)().Yield())) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<IEnumerable<ValueChange<TData>>>()); //Avoid OnComplete
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _dataChangeObservable);

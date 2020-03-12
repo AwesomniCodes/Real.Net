@@ -21,16 +21,16 @@ namespace Awesomni.Codes.FlowRx
 
         public abstract void Dispose();
 
-        public static IDataItem Create(object initialValue)
+        public static Func<IDataItem> Creation(object initialValue)
         {
-            MethodInfo method = typeof(DataItem<>).MakeGenericType(initialValue.GetType()).GetMethod(nameof(Create), BindingFlags.Static | BindingFlags.Public);
-            return (IDataItem)method.Invoke(null, new object[] { initialValue });
+            MethodInfo method = typeof(DataItem<>).MakeGenericType(initialValue.GetType()).GetMethod(nameof(Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<IDataItem>)method.Invoke(null, new object[] { initialValue });
         }
 
-        public static IDataItem Create(Type type)
+        public static Func<IDataItem> Creation(Type type)
         {
-            MethodInfo method = typeof(DataItem<>).MakeGenericType(type).GetMethod(nameof(Create), BindingFlags.Static | BindingFlags.Public);
-            return (IDataItem)method.Invoke(null, new object?[] { type.GetDefault() });
+            MethodInfo method = typeof(DataItem<>).MakeGenericType(type).GetMethod(nameof(Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<IDataItem>)method.Invoke(null, new object?[] { type.GetDefault() });
         }
     }
 
@@ -40,7 +40,7 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
         private bool _isDisposed;
 
-        public static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+        public static Func<IDataItem<TData>> Creation(TData initialValue = default) => () => new DataItem<TData>(initialValue);
 
         private DataItem(TData initialValue = default)
         {
@@ -48,10 +48,10 @@ namespace Awesomni.Codes.FlowRx
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Create, value).Yield())
+                    pub.Take(1).Select(value => ValueChange<TData>.Creation(ChangeType.Create, value)().Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, value).Yield())))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Complete, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => ValueChange<TData>.Creation(ChangeType.Modify, value)().Yield())))
+                .Concat(Observable.Return(ValueChange<TData>.Creation(ChangeType.Complete, _subject.Value)().Yield())); //When completed it means for DataChange item is removed
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _outObservable);
         }
