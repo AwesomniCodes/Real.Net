@@ -13,14 +13,33 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
+    using System.Reflection;
 
-    public class DataItem<TData> : DataObject, IDataItem<TData>
+    public abstract class DataItem : DataObject, IDataItem
+    {
+        public abstract object? Value { get; }
+
+        public abstract void Dispose();
+
+        public static IDataItem Create(object initialValue)
+        {
+            MethodInfo method = typeof(DataItem<>).GetMethod(nameof(Create));
+            MethodInfo generic = method.MakeGenericMethod(initialValue.GetType());
+            return (IDataItem) generic.Invoke(null, new object[] { initialValue });
+        }
+
+        public static IDataItem Create(Type type) => Create(type.GetDefault());
+    }
+
+    public class DataItem<TData> : DataItem, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
         private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
         private bool _isDisposed;
 
-        internal DataItem(TData initialValue = default(TData))
+        internal static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+
+        private DataItem(TData initialValue = default)
         {
             _subject = new BehaviorSubject<TData>(initialValue);
 
@@ -29,14 +48,17 @@ namespace Awesomni.Codes.FlowRx
                     pub.Take(1).Select(value => ValueChange<TData>.Create(ChangeType.Create, value).Yield())
                     .Merge(
                         pub.Skip(1).Select(value => ValueChange<TData>.Create(ChangeType.Modify, value).Yield())))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Complete, _subject.Value).Yield())); //When completed it means for DataChange item is removed
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _outObservable);
         }
 
-        public TData Value => _subject.Value;
+        TData IDataItem<TData>.Value => _subject.Value;
+
+        public override object? Value => _subject.Value;
 
         public override ISubject<IEnumerable<SomeChange>> Changes { get; }
+
         public void OnCompleted() { _subject.OnCompleted(); }
 
         public void OnError(Exception error)
@@ -58,7 +80,7 @@ namespace Awesomni.Codes.FlowRx
 
         public IDisposable Subscribe(IObserver<TData> observer) => _subject.Subscribe();
 
-        public void Dispose()
+        public override void Dispose()
         {
             _subject.Dispose();
             _isDisposed = true;
@@ -73,14 +95,14 @@ namespace Awesomni.Codes.FlowRx
 
                 if (change.ChangeType.HasFlag(ChangeType.Modify))
                 {
-                    var data = change.Value is TData value ? value : default(TData);
+                    var data = change.Value is TData value ? value : default;
                     if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
                     {
                         _subject.OnNext((TData)change.Value);
                     }
                 }
 
-                if (change.ChangeType.HasFlag(ChangeType.Remove))
+                if (change.ChangeType.HasFlag(ChangeType.Complete))
                 {
                     _subject.OnCompleted();
                 }

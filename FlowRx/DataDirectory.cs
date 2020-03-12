@@ -23,7 +23,8 @@ namespace Awesomni.Codes.FlowRx
         private readonly BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>> item;
         private readonly ISubject<IEnumerable<SomeChange>> _outSubject;
 
-        public DataDirectory()
+        public static IDataDirectory Create() => new DataDirectory();
+        private DataDirectory()
         {
             item = new BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>>(new SourceCache<(string Key, IDataObject DataObject), string>(o => o.Key.ToString()));
 
@@ -31,6 +32,25 @@ namespace Awesomni.Codes.FlowRx
             var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => ChildChange.Create(dO.Key,changes).Yield()));
             var outObservable = Observable.Return(ValueChange<IDataDirectory>.Create(ChangeType.Create).Yield()).Concat(_outSubject.Merge(childChangesObservable));
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), outObservable);
+
+
+            //Subscription to remove completed childs from list
+            Changes.Subscribe(childChanges =>
+            {
+                var completedKeys = childChanges
+                .OfType<ChildChange>()
+                .SelectMany(childChange =>
+                                childChange
+                                .Changes
+                                .OfType<ValueChange>()
+                                .Where(ccI => ccI.ChangeType == ChangeType.Complete)
+                                .Select(_ => childChange.Key));
+
+                completedKeys.ForEach(key =>
+                {
+                    item.Value.Remove(key.ToString());
+                });
+            });
         }
 
         public override ISubject<IEnumerable<SomeChange>> Changes { get; }
@@ -38,67 +58,63 @@ namespace Awesomni.Codes.FlowRx
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default)
+        public IDataItem Create(string key, object value)
         {
-            IDataItem<TData> data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataItem<TData>;
-
-            if (data == null)
-            {
-                data = new DataItem<TData>();
-                item.Value.AddOrUpdate((key, data));
-            }
-
+            var data = DataItem.Create(value);
+            Connect(key, data);
             return data;
         }
 
-        public IDataDirectory GetOrCreateDirectory(string key)
+        public IDataItem Create(string key, Type type) => Create(key, type.GetDefault());
+
+        public IDataItem<TData> Create<TData>(string key, TData value = default)
         {
-            IDataDirectory data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataDirectory;
-
-            if (data == null)
-            {
-                data = new DataDirectory();
-                item.Value.AddOrUpdate((key, data));
-            }
-
+            var data = DataItem<TData>.Create(value);
+            Connect(key, data);
             return data;
         }
 
-        public IDataItem<TData> Get<TData>(string key) => (IDataItem<TData>) Get(key);
-
-        public IDataDirectory GetDirectory(string key) => (IDataDirectory) Get(key);
-
-        public IDataObject Get(string key)
+        public IDataDirectory CreateDirectory(string key)
         {
-            return item.Value.Lookup(key).Value.DataObject;
+            var directory = DataDirectory.Create();
+            Connect(key, directory);
+            return directory;
         }
 
-        public bool TryGet(string key, out IDataObject dataObject)
+        //public IDataItem<TData> GetOrCreate<TData>(string key, TData value = default) => Get<TData>
+        //{
+        //    IDataItem<TData> data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataItem<TData>;
+
+        //    if (data == null)
+        //    {
+        //        data = DataItem<TData>.Create();
+        //        Connect(key, data);
+        //    }
+
+        //    return data;
+        //}
+
+        //public IDataDirectory GetOrCreateDirectory(string key)
+        //{
+        //    IDataDirectory data = item.Value.Lookup(key).ValueOrDefault().DataObject as IDataDirectory;
+
+        //    if (data == null)
+        //    {
+        //        data = DataDirectory.Create();
+        //        Connect(key, data);
+        //    }
+
+        //    return data;
+        //}
+
+        public IDataObject? Get(string key) => item.Value.Lookup(key).ValueOrDefault().DataObject;
+
+        public void Connect(string key, IDataObject dataObject)
         {
-            dataObject = item.Value.Lookup(key).ValueOrDefault().DataObject;
-            return dataObject != null;
+            item.Value.AddOrUpdate((key, dataObject));
         }
 
-        public bool TryGetDirectory(string key, out IDataDirectory dataDirectory)
-        {
-            TryGet(key, out var dataObject);
-            return (dataDirectory = dataObject as IDataDirectory) != null;
-        }
-
-        public bool TryGet<TData>(string key, out IDataItem<TData> dataItem)
-        {
-            TryGet(key, out var dataObject);
-            return (dataItem = dataObject as IDataItem<TData>) != null;
-        }
-
-        public void Complete(string key)
-        {
-            var dOItem = item.Value.Lookup(key).ValueOrDefault();
-            item.Value.Remove(key);
-            dOItem.DataObject?.Changes.OnCompleted();
-        }
-
-        public void Remove(string key)
+        public void Disconnect(string key)
         {
             var dOItem = item.Value.Lookup(key).ValueOrDefault();
             item.Value.Remove(key);
@@ -121,18 +137,25 @@ namespace Awesomni.Codes.FlowRx
                         {
                             if (innerChange is ValueChange<IDataDirectory> innerDirectoryValueChange)
                             {
-                                GetOrCreateDirectory(childChange.Key.ToString());
+                                ((IDataDirectory)this).GetOrCreateDirectory(childChange.Key.ToString());
                             }
                             else
                             {
-                                MethodInfo method = GetType().GetMethod("GetOrCreate");
-                                MethodInfo generic = method.MakeGenericMethod(innerValueChange.Value.GetType());
-                                generic.Invoke(this, new object[] { childChange.Key, innerValueChange.Value });
+                                //Get type of value change here and provide it when value is null, instead
+                                if(innerValueChange.Value == null)
+                                {
+                                    var innerValueChangeType = innerValueChange.GetType().GetGenericArguments().Single();
+                                    ((IDataDirectory)this).GetOrCreate(childChange.Key.ToString(), innerValueChangeType);
+                                }
+                                else
+                                {
+                                    ((IDataDirectory)this).GetOrCreate(childChange.Key.ToString(), innerValueChange.Value);
+                                }
                             }
                         }
                         else
                         {
-                            Get(childChange.Key.ToString()).Changes.OnNext(innerChange.Yield());
+                            Get(childChange.Key.ToString()).NullThrow().Changes.OnNext(innerChange.Yield());
                         }
 
                     });
@@ -150,5 +173,6 @@ namespace Awesomni.Codes.FlowRx
             throw new NotImplementedException();
         }
 
+        
     }
 }

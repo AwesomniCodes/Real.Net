@@ -16,19 +16,19 @@ namespace Awesomni.Codes.FlowRx.Tests
     {
         public static IDataDirectory GetCommonDirectory()
         {
-            var root = new DataDirectory();
-            var subFolder = root.GetOrCreateDirectory("TestDirectory");
-            var testString = subFolder.GetOrCreate("TestString", "TestString");
-            var testInt = subFolder.GetOrCreate("TestInt", 23);
-            var testDouble = subFolder.GetOrCreate("TestDouble", 23.0);
-            var testBool = subFolder.GetOrCreate("TestBool", true);
+            var root = DataDirectory.Create();
+            var subFolder = root.CreateDirectory("TestDirectory");
+            var testString = subFolder.Create("TestString", "TestString");
+            var testInt = subFolder.Create("TestInt", 23);
+            var testDouble = subFolder.Create("TestDouble", 23.0);
+            var testBool = subFolder.Create("TestBool", true);
             return root;
         }
 
 
         public static IDataDirectory GetMirroredDirectory(IDataDirectory directory)
         {
-            var mirror = new DataDirectory();
+            var mirror = DataDirectory.Create();
 
             directory.Changes.Subscribe(mirror.Changes);
 
@@ -39,11 +39,11 @@ namespace Awesomni.Codes.FlowRx.Tests
         public static IDataDirectory GetCommonDirectoryWithCommonModification()
         {
             var root = GetCommonDirectory();
-            var subFolder = root.GetDirectory("TestDirectory");
-            var testString = subFolder.Get<string>("TestString");
-            var testInt = subFolder.Get<int>("TestInt");
-            var testDouble = subFolder.Get<double>("TestDouble");
-            var testBool = subFolder.Get<bool>("TestBool");
+            var subFolder = root.GetDirectory("TestDirectory").NullThrow();
+            var testString = subFolder.Get<string>("TestString").NullThrow();
+            var testInt = subFolder.Get<int>("TestInt").NullThrow();
+            var testDouble = subFolder.Get<double>("TestDouble").NullThrow();
+            var testBool = subFolder.Get<bool>("TestBool").NullThrow();
 
             testInt.OnNext(20);
             testInt.OnCompleted();
@@ -114,7 +114,7 @@ namespace Awesomni.Codes.FlowRx.Tests
         [Fact]
         public void When_Subscribing_To_A_Data_Object_Specific_Definition_Is_Returned()
         {
-            var root = new DataDirectory();
+            var root = DataDirectory.Create();
             var subFolder = root.GetOrCreateDirectory("TestDirectory");
             var testString = subFolder.GetOrCreate("TestString", "TestString");
             var testInt = subFolder.GetOrCreate("TestInt", 23);
@@ -173,11 +173,13 @@ namespace Awesomni.Codes.FlowRx.Tests
             };
 
             
-            Task.Run(syncChange1)
+             var changeTask = Task.Run(syncChange1)
                 .ContinueWith(t => syncChange2())
                 .ContinueWith(t => syncChange3());
 
             var list = await listAsync;
+
+            await changeTask;
 
             Assert.Equal(new List<int> { 5, 12, 2, 4 }, list.ToList());
         }

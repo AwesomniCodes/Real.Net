@@ -6,22 +6,32 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using System;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
     public interface IDataDirectory : IDataObject, IEnumerable<IDataObject>
     {
-        IDataItem<TData> GetOrCreate<TData>(string key, TData value = default(TData));
+        IDataItem Create(string key, object value);
+        IDataItem Create(string key, Type type);
+        IDataItem<TData> Create<TData>(string key, TData value = default);
 
-        IDataDirectory GetOrCreateDirectory(string key);
-        
-        IDataDirectory GetDirectory(string key) => (IDataDirectory)Get(key);
+        IDataDirectory CreateDirectory(string key);
 
-        IDataItem<TData> Get<TData>(string key);
+        IDataItem GetOrCreate(string key, object value) => (IDataItem?) Get(key) ?? Create(key, value);
+        IDataItem GetOrCreate(string key, Type type) => (IDataItem?) Get(key) ?? Create(key, type);
+        IDataItem<TData> GetOrCreate<TData>(string key, TData value = default) => Get<TData>(key) ?? Create(key, value);
+        IDataDirectory GetOrCreateDirectory(string key) => GetDirectory(key) ?? CreateDirectory(key);
 
-        IDataObject Get(string key);
+        IDataObject? Get(string key);
+        IDataItem<TData>? Get<TData>(string key) => (IDataItem<TData>?)Get(key);
+        IDataDirectory? GetDirectory(string key) => (IDataDirectory?) Get(key);
 
-        void Remove(string key);
+
+
+        void Connect(string key, IDataObject dataObject);
+
+        void Disconnect(string key);
 
         void Copy(string sourceKey, string destinationKey);
 

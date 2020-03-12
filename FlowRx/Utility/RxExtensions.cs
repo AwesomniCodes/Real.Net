@@ -51,8 +51,10 @@ namespace Awesomni.Codes.FlowRx.Utility
         public static IObservable<(TValue Previous, TValue Next)> PairWithPrevious<TValue>(
             this IObservable<TValue> source)
         {
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
             return source.Scan((Previous: default(TValue), New: default(TValue)),
                 (acc, current) => (Previous: acc.New, New: current));
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
         }
 
 

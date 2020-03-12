@@ -12,8 +12,12 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public interface IDataItem<TData> : IDataObject, ISubject<TData>, IDisposable
+    public interface IDataItem : IDataObject, IDisposable
     {
-        TData Value { get; }
+        object? Value { get; }
+    }
+    public interface IDataItem<TData> : IDataItem, ISubject<TData>
+    {
+        new TData Value { get; }
     }
 }

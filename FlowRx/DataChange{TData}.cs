@@ -10,18 +10,18 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
 
     [Flags]
     public enum ChangeType : int
     {
         Create = 1,
-        Connect = 2,
-        Modify = 4,
-        Remove = 8,
-        Complete = 16,
-        Request = 32,
-        Error = 64,
+        Complete = 2,
+        Connect = 4,
+        Disconnect = 8,
+        Modify = 16,
+        Error = 32,
     }
 
     public abstract class SomeChange
@@ -45,7 +45,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class ValueChange : SomeChange
     {
-        protected ValueChange(ChangeType changeType, object value = null)
+        protected ValueChange(ChangeType changeType, object? value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -53,16 +53,25 @@ namespace Awesomni.Codes.FlowRx
 
         public ChangeType ChangeType { get; }
 
-        public object Value { get; }
+        public object? Value { get; }
+
+        public static ValueChange Create(ChangeType changeType, object value)
+        {
+            MethodInfo method = typeof(ValueChange<>).GetMethod(nameof(ValueChange.Create));
+            MethodInfo generic = method.MakeGenericMethod(value.GetType());
+            return (ValueChange) generic.Invoke(null, new object[] { changeType, value });
+        }
+
+        public static ValueChange Create(ChangeType changeType, Type type) => Create(changeType, type.GetDefault());
     }
 
     public class ValueChange<TData> : ValueChange
     {
-        internal ValueChange(ChangeType changeType, TData value = default(TData)) : base(changeType, value) { }
+        internal ValueChange(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
-        public new TData Value => (TData) base.Value;
+        public new TData Value => base.Value is TData tValue ? tValue : default;
 
-        public static ValueChange<TData> Create(ChangeType changeType, TData value = default(TData))
+        public static ValueChange<TData> Create(ChangeType changeType, TData value = default)
         {
             return new ValueChange<TData>(changeType, value);
         }
@@ -71,7 +80,7 @@ namespace Awesomni.Codes.FlowRx
     public static class ChangeExtensions
     {
 
-        public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object Value) flatChange)
+        public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object? Value) flatChange)
         {
             var sb = new StringBuilder();
             sb.Append('.');
@@ -82,11 +91,11 @@ namespace Awesomni.Codes.FlowRx
             
             return $"{sb.ToString()} - {flatChange.changeType}: {flatChange.Value}";
         }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this IEnumerable<SomeChange> changes, IEnumerable<object> curKeyChain = null)
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IEnumerable<SomeChange> changes, IEnumerable<object>? curKeyChain = null)
         {
             return changes.SelectMany(change => change.Flattened(curKeyChain ?? Enumerable.Empty<object>()));
         }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object Value)> Flattened(this SomeChange change, IEnumerable<object> curKeyChain = null)
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this SomeChange change, IEnumerable<object>? curKeyChain = null)
         {
             var keyChain = (curKeyChain ?? Enumerable.Empty<object>()).ToList();
 

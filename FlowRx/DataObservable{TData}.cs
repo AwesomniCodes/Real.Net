@@ -18,7 +18,9 @@ namespace Awesomni.Codes.FlowRx
         private readonly IObservable<IEnumerable<ValueChange>> _dataChangeObservable;
         private readonly IObservable<TData> _observable;
 
-        internal DataObservable(IObservable<TData> observable, TData initialValue = default(TData))
+        public static DataObservable<TData> Create(IObservable<TData> observable, TData initialValue = default)
+            => new DataObservable<TData>(observable, initialValue);
+        private DataObservable(IObservable<TData> observable, TData initialValue = default)
         {
             _observable = observable;
             Value = initialValue;
@@ -35,7 +37,7 @@ namespace Awesomni.Codes.FlowRx
 
                     return Observable.Return(ValueChange<TData>.Create(ChangeType.Modify, value).Yield());
                 }))
-                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Remove, Value).Yield())) //When completed it means for DataChange item is removed
+                .Concat(Observable.Return(ValueChange<TData>.Create(ChangeType.Complete, Value).Yield())) //When completed it means for DataChange item is removed
                 .Concat(Observable.Never<IEnumerable<ValueChange<TData>>>()); //Avoid OnComplete
 
             Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _dataChangeObservable);

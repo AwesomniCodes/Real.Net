@@ -9,14 +9,15 @@ namespace Awesomni.Codes.FlowRx.Utility
         /// <summary>
         /// Gets The Default Value for this Type
         /// </summary>
-        public static object GetDefault(this Type type)
+        public static object? GetDefault(this Type type)
         {
-            if (type.IsValueType)
-            {
-                return Activator.CreateInstance(type);
-            }
-
-            return null;
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
+
+        public static T NullThrow<T>(this T? value, string paramName = "") where T : class
+            => value != null ? value : throw new ArgumentNullException("The value must not be null in this case");
+
+        public static T NullSubstitute<T>(this T? value, T substitute) where T : class
+            => value ?? substitute;
     }
 }
