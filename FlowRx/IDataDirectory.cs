@@ -10,17 +10,17 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDirectory : IDataObject, IEnumerable<IDataObject>
+    public interface IDataDirectory<TDataObject> : IDataObject, IEnumerable<IDataObject> where TDataObject : class, IDataObject
     {
-        TDataObject Create<TDataObject>(string key, Func<TDataObject> creator) where TDataObject : IDataObject;
+        QDataObject Create<QDataObject>(string key, Func<QDataObject> creator) where QDataObject : TDataObject;
 
-        TDataObject GetOrCreate<TDataObject>(string key, Func<TDataObject> creator) where TDataObject : class, IDataObject
-            => Get<TDataObject>(key) ?? Create(key, creator);
+        QDataObject GetOrCreate<QDataObject>(string key, Func<QDataObject> creator) where QDataObject : class, TDataObject
+            => Get<QDataObject>(key) ?? Create(key, creator);
 
-        TDataObject? Get<TDataObject>(string key) where TDataObject : class, IDataObject;
+        QDataObject? Get<QDataObject>(string key) where QDataObject : class, TDataObject;
 
 
-        void Connect(string key, IDataObject dataObject);
+        void Connect(string key, TDataObject dataObject);
 
         void Disconnect(string key);
 

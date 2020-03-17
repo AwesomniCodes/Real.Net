@@ -23,29 +23,40 @@ namespace Awesomni.Codes.FlowRx
         Modify = 16,
         Error = 32,
     }
+    public interface IChange<out TDataObject> where TDataObject : class, IDataObject { }
+    public abstract class Change<TDataObject> : IChange<TDataObject> where TDataObject : class, IDataObject { }
 
-    public abstract class SomeChange
+    public interface IDirectoryChange<TDataObject> : IChange<IDataDirectory<TDataObject>> where TDataObject : class, IDataObject
     {
+        object Key { get; }
+        IEnumerable<IChange<TDataObject>> Changes { get; }
+
     }
 
-    public class ChildChange : SomeChange
+    public class DirectoryChange<TDataObject> : Change<IDataDirectory<TDataObject>>, IDirectoryChange<TDataObject> where TDataObject : class, IDataObject
     {
         public object Key { get; }
 
-        private ChildChange(object key, IEnumerable<SomeChange> changes)
+        private DirectoryChange(object key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
             Changes = changes;
         }
 
-        public IEnumerable<SomeChange> Changes { get; private set; }
+        public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
 
-        public static Func<ChildChange> Creation(object key, IEnumerable<SomeChange> changes) => () => new ChildChange(key, changes);
+        public static Func<IDirectoryChange<TDataObject>> Creation(object key, IEnumerable<IChange<TDataObject>> changes) => () => new DirectoryChange<TDataObject>(key, changes);
     }
 
-    public abstract class ValueChange : SomeChange
+    public interface IDataItemChange : IChange<IDataItem>
     {
-        protected ValueChange(ChangeType changeType, object? value = null)
+        ChangeType ChangeType { get; }
+        object? Value { get; }
+    }
+
+    public abstract class DataItemChange : Change<IDataItem>, IDataItemChange
+    {
+        protected DataItemChange(ChangeType changeType, object? value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -55,27 +66,33 @@ namespace Awesomni.Codes.FlowRx
 
         public object? Value { get; }
 
-        public static Func<ValueChange> Creation(ChangeType changeType, object value)
+        public static Func<IDataItemChange> Creation(ChangeType changeType, object value)
         {
-            MethodInfo method = typeof(ValueChange<>).MakeGenericType(value.GetType()).GetMethod(nameof(ValueChange.Creation), BindingFlags.Static | BindingFlags.Public);
-            return (Func<ValueChange>)method.Invoke(null, new object[] { changeType, value });
+            MethodInfo method = typeof(DataItemChange<>).MakeGenericType(value.GetType()).GetMethod(nameof(DataItemChange.Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<IDataItemChange>)method.Invoke(null, new object[] { changeType, value });
         }
 
-        public static Func<ValueChange> Creation(ChangeType changeType, Type type)
+        public static Func<IDataItemChange> Creation(ChangeType changeType, Type type)
         {
-            MethodInfo method = typeof(ValueChange<>).MakeGenericType(type).GetMethod(nameof(ValueChange.Creation), BindingFlags.Static | BindingFlags.Public);
-            return (Func<ValueChange>)method.Invoke(null, new object?[] { changeType, type.GetDefault() });
+            MethodInfo method = typeof(DataItemChange<>).MakeGenericType(type).GetMethod(nameof(DataItemChange.Creation), BindingFlags.Static | BindingFlags.Public);
+            return (Func<IDataItemChange>)method.Invoke(null, new object?[] { changeType, type.GetDefault() });
         }
     }
 
-    public class ValueChange<TData> : ValueChange
+
+    public interface IDataItemChange<TData> : IChange<IDataItem<TData>>, IDataItemChange
     {
-        internal ValueChange(ChangeType changeType, TData value = default) : base(changeType, value) { }
+        new TData Value { get; }
+    }
+
+    public class DataItemChange<TData> : DataItemChange, IDataItemChange<TData>
+    {
+        internal DataItemChange(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
         public new TData Value => base.Value is TData tValue ? tValue : default;
 
-        public static Func<ValueChange<TData>> Creation(ChangeType changeType, TData value = default)
-            => () => new ValueChange<TData>(changeType, value);
+        public static Func<IDataItemChange<TData>> Creation(ChangeType changeType, TData value = default)
+            => () => new DataItemChange<TData>(changeType, value);
     }
 
     public static class ChangeExtensions
@@ -92,20 +109,20 @@ namespace Awesomni.Codes.FlowRx
             
             return $"{sb.ToString()} - {flatChange.changeType}: {flatChange.Value}";
         }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IEnumerable<SomeChange> changes, IEnumerable<object>? curKeyChain = null)
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IEnumerable<IChange<IDataObject>> changes, IEnumerable<object>? curKeyChain = null)
         {
             return changes.SelectMany(change => change.Flattened(curKeyChain ?? Enumerable.Empty<object>()));
         }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this SomeChange change, IEnumerable<object>? curKeyChain = null)
+        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IChange<IDataObject> change, IEnumerable<object>? curKeyChain = null)
         {
             var keyChain = (curKeyChain ?? Enumerable.Empty<object>()).ToList();
 
-            if (change is ValueChange valueChange)
+            if (change is IDataItemChange valueChange)
             {
                 yield return (keyChain, valueChange.ChangeType, valueChange.Value);
             }
 
-            if (change is ChildChange childChange)
+            if (change is IDirectoryChange<IDataObject> childChange)
             {
                 keyChain = keyChain.Concat(childChange.Key.Yield()).ToList();
 

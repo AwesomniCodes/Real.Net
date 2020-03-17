@@ -11,6 +11,6 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class DataObject : IDataObject
     {
-        public abstract ISubject<IEnumerable<SomeChange>> Changes { get; }
+        public abstract ISubject<IEnumerable<IChange<IDataObject>>> Changes { get; }
     }
 }

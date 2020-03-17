@@ -18,31 +18,31 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataDirectory : DataObject, IDataDirectory
+    public class DataDirectory<TDataObject> : DataObject, IDataDirectory<TDataObject> where TDataObject : class, IDataObject
     {
-        private readonly BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>> item;
-        private readonly ISubject<IEnumerable<SomeChange>> _outSubject;
-        private IDataDirectory This => this;
-        public static Func<IDataDirectory> Creation => () => new DataDirectory();
+        private readonly BehaviorSubject<SourceCache<(string Key, TDataObject DataObject), string>> item;
+        private readonly ISubject<IEnumerable<IChange<IDataObject>>> _outSubject;
+        private IDataDirectory<TDataObject> This => this;
+        public static Func<IDataDirectory<TDataObject>> Creation => () => new DataDirectory<TDataObject>();
         private DataDirectory()
         {
-            item = new BehaviorSubject<SourceCache<(string Key, IDataObject DataObject), string>>(new SourceCache<(string Key, IDataObject DataObject), string>(o => o.Key.ToString()));
+            item = new BehaviorSubject<SourceCache<(string Key, TDataObject DataObject), string>>(new SourceCache<(string Key, TDataObject DataObject), string>(o => o.Key));
 
-            _outSubject = new Subject<IEnumerable<SomeChange>>();
-            var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => ChildChange.Creation(dO.Key,changes)().Yield()));
-            var outObservable = Observable.Return(ValueChange<IDataDirectory>.Creation(ChangeType.Create)().Yield()).Concat(_outSubject.Merge(childChangesObservable));
-            Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), outObservable);
+            _outSubject = new Subject<IEnumerable<IChange<IDataObject>>>();
+            var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => DirectoryChange<TDataObject>.Creation(dO.Key, changes.Cast<IChange<TDataObject>>())().Yield()));
+            var outObservable = Observable.Return(DataItemChange<IDataDirectory<TDataObject>>.Creation(ChangeType.Create)().Yield()).Concat(_outSubject.Merge(childChangesObservable));
+            Changes = Subject.Create<IEnumerable<IChange<IDataObject>>>(Observer.Create<IEnumerable<IChange<IDataObject>>>(OnChangesIn), outObservable);
 
 
             //Subscription to remove completed childs from list
             Changes.Subscribe(childChanges =>
             {
                 var completedKeys = childChanges
-                .OfType<ChildChange>()
+                .OfType<IDirectoryChange<TDataObject>>()
                 .SelectMany(childChange =>
                                 childChange
                                 .Changes
-                                .OfType<ValueChange>()
+                                .OfType<IDataItemChange>()
                                 .Where(ccI => ccI.ChangeType == ChangeType.Complete)
                                 .Select(_ => childChange.Key));
 
@@ -53,22 +53,22 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        public override ISubject<IEnumerable<SomeChange>> Changes { get; }
+        public override ISubject<IEnumerable<IChange<IDataObject>>> Changes { get; }
         public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.Select(dO => dO.DataObject).GetEnumerator(); }
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public TDataObject Create<TDataObject>(string key, Func<TDataObject> creator) where TDataObject : IDataObject
+        public QDataObject Create<QDataObject>(string key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
             var data = creator();
             Connect(key, data);
             return data;
         }
 
-        public TDataObject Get<TDataObject>(string key) where TDataObject : class, IDataObject
-            => (TDataObject) item.Value.Lookup(key).ValueOrDefault().DataObject;
+        public QDataObject Get<QDataObject>(string key) where QDataObject : class, TDataObject
+            => (QDataObject) item.Value.Lookup(key).ValueOrDefault().DataObject;
 
-        public void Connect(string key, IDataObject dataObject)
+        public void Connect(string key, TDataObject dataObject)
         {
             item.Value.AddOrUpdate((key, dataObject));
         }
@@ -79,42 +79,42 @@ namespace Awesomni.Codes.FlowRx
             item.Value.Remove(key);
         }
 
-        private void OnChangesIn(IEnumerable<SomeChange> changes)
+        private void OnChangesIn(IEnumerable<IChange<IDataObject>> changes)
         {
             changes.ForEach(change =>
             {
-                if (change is ValueChange<IDataDirectory>)
+                if (change is IDataItemChange<TDataObject>)
                 {
                     //TODO: The whole directory gets replaced
                     //item.OnNext(change);
                 }
-                else if(change is ChildChange childChange)
+                else if(change is IDirectoryChange<IDataObject> childChange)
                 {
                     childChange.Changes.ForEach(innerChange =>
                     {
-                        if (innerChange is ValueChange innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
+                        if (innerChange is IDataItemChange innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                         {
-                            if (innerChange is ValueChange<IDataDirectory> innerDirectoryValueChange)
+                            if (innerChange is IDataItemChange<IDataDirectory<TDataObject>> innerDirectoryValueChange)
                             {
-                                ((IDataDirectory)this).GetOrCreate(childChange.Key.ToString(), DataDirectory.Creation);
+                                    This.GetOrCreate(childChange.Key.ToString(), () => (TDataObject) DataDirectory<IDataObject>.Creation());
                             }
                             else
                             {
                                 //Get type of value change here and provide it when value is null, instead
-                                if(innerValueChange.Value == null)
+                                if (innerValueChange.Value == null)
                                 {
                                     var innerValueChangeType = innerValueChange.GetType().GetGenericArguments().Single();
-                                    This.GetOrCreate(childChange.Key.ToString(), DataItem.Creation(innerValueChangeType));
+                                    This.GetOrCreate(childChange.Key.ToString(), () => (TDataObject) DataItem.Creation(innerValueChangeType)());
                                 }
                                 else
                                 {
-                                    This.GetOrCreate(childChange.Key.ToString(), DataItem.Creation(innerValueChange.Value));
+                                    This.GetOrCreate(childChange.Key.ToString(), () => (TDataObject) DataItem.Creation(innerValueChange.Value)());
                                 }
                             }
                         }
                         else
                         {
-                            Get<IDataObject>(childChange.Key.ToString()).NullThrow().Changes.OnNext(innerChange.Yield());
+                            Get<TDataObject>(childChange.Key.ToString()).NullThrow().Changes.OnNext(innerChange.Yield());
                         }
 
                     });

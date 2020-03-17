@@ -37,7 +37,7 @@ namespace Awesomni.Codes.FlowRx
     public class DataItem<TData> : DataItem, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
-        private readonly IObservable<IEnumerable<ValueChange>> _outObservable;
+        private readonly IObservable<IEnumerable<IDataItemChange>> _outObservable;
         private bool _isDisposed;
 
         public static Func<IDataItem<TData>> Creation(TData initialValue = default) => () => new DataItem<TData>(initialValue);
@@ -48,19 +48,19 @@ namespace Awesomni.Codes.FlowRx
 
             _outObservable = _subject.DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => ValueChange<TData>.Creation(ChangeType.Create, value)().Yield())
+                    pub.Take(1).Select(value => DataItemChange<TData>.Creation(ChangeType.Create, value)().Yield())
                     .Merge(
-                        pub.Skip(1).Select(value => ValueChange<TData>.Creation(ChangeType.Modify, value)().Yield())))
-                .Concat(Observable.Return(ValueChange<TData>.Creation(ChangeType.Complete, _subject.Value)().Yield())); //When completed it means for DataChange item is removed
+                        pub.Skip(1).Select(value => DataItemChange<TData>.Creation(ChangeType.Modify, value)().Yield())))
+                .Concat(Observable.Return(DataItemChange<TData>.Creation(ChangeType.Complete, _subject.Value)().Yield())); //When completed it means for DataChange item is removed
 
-            Changes = Subject.Create<IEnumerable<SomeChange>>(Observer.Create<IEnumerable<SomeChange>>(OnChangesIn), _outObservable);
+            Changes = Subject.Create<IEnumerable<IChange<IDataObject>>>(Observer.Create<IEnumerable<IChange<IDataObject>>>(OnChangesIn), _outObservable);
         }
 
         TData IDataItem<TData>.Value => _subject.Value;
 
         public override object? Value => _subject.Value;
 
-        public override ISubject<IEnumerable<SomeChange>> Changes { get; }
+        public override ISubject<IEnumerable<IChange<IDataObject>>> Changes { get; }
 
         public void OnCompleted() { _subject.OnCompleted(); }
 
@@ -89,9 +89,9 @@ namespace Awesomni.Codes.FlowRx
             _isDisposed = true;
         }
 
-        private void OnChangesIn(IEnumerable<SomeChange> changes)
+        private void OnChangesIn(IEnumerable<IChange<IDataObject>> changes)
         {
-            changes.Cast<ValueChange<TData>>().ForEach(change =>
+            changes.Cast<IDataItemChange<TData>>().ForEach(change =>
             {
                 //Handle Errors
                 if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
