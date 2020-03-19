@@ -6,11 +6,13 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using Awesomni.Codes.FlowRx.Utility;
+    using System;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
     public abstract class DataObject : IDataObject
     {
-        public abstract ISubject<IEnumerable<IChange<IDataObject>>> Changes { get; }
+        public abstract ISubject<IEnumerable<IChange>> Changes { get; }
     }
 }

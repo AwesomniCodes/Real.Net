@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Awesomni.Codes.FlowRx.Utility
@@ -12,6 +13,18 @@ namespace Awesomni.Codes.FlowRx.Utility
         public static object? GetDefault(this Type type)
         {
             return type.IsValueType ? Activator.CreateInstance(type) : null;
+        }
+
+        public static Type? GetTypeIfImplemented(this Type type, Type interfaceType)
+        {
+            if (interfaceType.IsGenericType && !interfaceType.IsConstructedGenericType)
+            {
+                return type.GetInterfaces().FirstOrDefault(x =>
+                      x.IsGenericType &&
+                      x.GetGenericTypeDefinition() == interfaceType);
+            }
+
+            return type.GetInterfaces().FirstOrDefault(x => x == interfaceType);
         }
 
         public static T NullThrow<T>(this T? value, string paramName = "") where T : class

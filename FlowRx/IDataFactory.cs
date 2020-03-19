@@ -1,16 +1,12 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="IDataObject.cs" project="FlowRx" solution="FlowRx" />
+//    file="IDataFactory.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Awesomni.Codes.FlowRx
 {
-    using System.Collections.Generic;
-    using System.Reactive.Subjects;
-
-    public interface IDataObject
+    public interface IDataFactory
     {
-        ISubject<IEnumerable<IChange>> Changes { get; }
     }
 }

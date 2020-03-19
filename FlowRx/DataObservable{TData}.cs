@@ -15,42 +15,40 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataObservable<TData> : DataObject, IObservable<TData>
     {
-        private readonly IObservable<IEnumerable<IDataItemChange>> _dataChangeObservable;
+        private readonly IObservable<IEnumerable<IChangeItem>> _dataChangeObservable;
         private readonly IObservable<TData> _observable;
 
-        public static Func<DataObservable<TData>> Creation(IObservable<TData> observable, TData initialValue = default)
-            => () => new DataObservable<TData>(observable, initialValue);
-        private DataObservable(IObservable<TData> observable, TData initialValue = default)
+        internal DataObservable(IObservable<TData> observable, TData initialValue = default)
         {
             _observable = observable;
             Value = initialValue;
             var isFirst = true;
-            _dataChangeObservable = Observable.Return(DataItemChange<TData>.Creation(ChangeType.Connect, initialValue)().Yield())
+            _dataChangeObservable = Observable.Return(Create.Change.Item(ChangeType.Connect, initialValue).Yield())
                 .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                 {
                     if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
                     {
-                        return Observable.Empty<IEnumerable<IDataItemChange<TData>>>();
+                        return Observable.Empty<IEnumerable<IChangeItem<TData>>>();
                     }
 
                     isFirst = false;
 
-                    return Observable.Return(DataItemChange<TData>.Creation(ChangeType.Modify, value)().Yield());
+                    return Observable.Return(Create.Change.Item(ChangeType.Modify, value).Yield());
                 }))
-                .Concat(Observable.Return(DataItemChange<TData>.Creation(ChangeType.Complete, Value)().Yield())) //When completed it means for DataChange item is removed
-                .Concat(Observable.Never<IEnumerable<IDataItemChange<TData>>>()); //Avoid OnComplete
+                .Concat(Observable.Return(Create.Change.Item(ChangeType.Complete, Value).Yield())) //When completed it means for DataChange item is removed
+                .Concat(Observable.Never<IEnumerable<IChangeItem<TData>>>()); //Avoid OnComplete
 
-            Changes = Subject.Create<IEnumerable<IChange<IDataObject>>>(Observer.Create<IEnumerable<IChange<IDataObject>>>(OnChangesIn), _dataChangeObservable);
+            Changes = Subject.Create<IEnumerable<IChange>>(Observer.Create<IEnumerable<IChange>>(OnChangesIn), _dataChangeObservable);
         }
 
 
         public TData Value { get; }
 
-        public override ISubject<IEnumerable<IChange<IDataObject>>> Changes { get; }
+        public override ISubject<IEnumerable<IChange>> Changes { get; }
  
         public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
 
-        private void OnChangesIn(IEnumerable<IChange<IDataObject>> changes)
+        private void OnChangesIn(IEnumerable<IChange> changes)
         {
             //Handle Errors
             throw new InvalidOperationException("DataObservable cannot be updated");
