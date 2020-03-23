@@ -29,7 +29,7 @@ namespace Awesomni.Codes.FlowRx
             => (IChangeItem)GetType()
             .GetMethod(nameof(Item), 1, new Type[] { typeof(ChangeType), Type.MakeGenericMethodParameter(1) })
             .MakeGenericMethod(type)
-            .Invoke(this, new object[] { changeType, type.GetDefault() });
+            .Invoke(this, new object?[] { changeType, type.GetDefault() });
 
         public IChangeItem<TData> Item<TData>(ChangeType changeType, TData value = default)
             => new DataItemChange<TData>(changeType, value);

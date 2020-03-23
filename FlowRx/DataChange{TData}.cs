@@ -26,10 +26,16 @@ namespace Awesomni.Codes.FlowRx
     public interface IChange { }
     public interface IChange<out TDataObject> : IChange where TDataObject : class, IDataObject { }
 
-    public interface IChangeDictionary<TKey, TDataObject> : IChange<IDataDictionary<TKey, TDataObject>> where TDataObject : class, IDataObject
+    public interface IChangeDictionary : IChange<IDataDictionary>
     {
-        TKey Key { get; }
-        IEnumerable<IChange<TDataObject>> Changes { get; }
+        object Key { get; }
+        IEnumerable<IChange> Changes { get; }
+    }
+
+    public interface IChangeDictionary<TKey, TDataObject> : IChangeDictionary, IChange<IDataDictionary<TKey, TDataObject>> where TDataObject : class, IDataObject
+    {
+        new TKey Key { get; }
+        new IEnumerable<IChange<TDataObject>> Changes { get; }
     }
 
     public interface IChangeItem : IChange<IDataItem>
@@ -55,6 +61,11 @@ namespace Awesomni.Codes.FlowRx
 
         public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
 
+#pragma warning disable CS8603 // Possible null reference return.
+        object IChangeDictionary.Key => Key;
+#pragma warning restore CS8603 // Possible null reference return.
+
+        IEnumerable<IChange> IChangeDictionary.Changes => Changes;
     }
 
 
@@ -80,43 +91,4 @@ namespace Awesomni.Codes.FlowRx
         public new TData Value => base.Value is TData tValue ? tValue : default;
     }
 
-    public static class ChangeExtensions
-    {
-
-        public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object? Value) flatChange)
-        {
-            var sb = new StringBuilder();
-            sb.Append('.');
-            foreach (var key in flatChange.KeyChain)
-            {
-                sb.Append($"/{key.ToString()}");
-            }
-            
-            return $"{sb.ToString()} - {flatChange.changeType}: {flatChange.Value}";
-        }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IEnumerable<IChange> changes, IEnumerable<object>? curKeyChain = null)
-        {
-            return changes.SelectMany(change => change.Flattened(curKeyChain ?? Enumerable.Empty<object>()));
-        }
-        public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IChange change, IEnumerable<object>? curKeyChain = null)
-        {
-            var keyChain = (curKeyChain ?? Enumerable.Empty<object>()).ToList();
-
-            if (change is IChangeItem valueChange)
-            {
-                yield return (keyChain, valueChange.ChangeType, valueChange.Value);
-            }
-
-            if (change is IChangeDictionary<object, IDataObject> childChange)
-            {
-                keyChain = keyChain.Concat(childChange.Key.Yield()).ToList();
-
-                foreach (var flattenedChildItem in childChange.Changes.Flattened(keyChain))
-                {
-                    yield return flattenedChildItem;
-                }
-            }
-        }
-
-    }
 }

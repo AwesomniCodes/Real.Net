@@ -53,7 +53,7 @@ namespace Awesomni.Codes.FlowRx
         }
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
-        public IEnumerator<IDataObject> GetEnumerator() { return item.Value.Items.Select(dO => dO.DataObject).GetEnumerator(); }
+        public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
@@ -71,6 +71,7 @@ namespace Awesomni.Codes.FlowRx
         {
             item.Value.AddOrUpdate((key, dataObject));
         }
+
 
         public void Disconnect(TKey key)
         {
@@ -93,9 +94,12 @@ namespace Awesomni.Codes.FlowRx
                     {
                         if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                         {
-                            if (innerChange is IChangeItem<IDataDictionary<TKey, TDataObject >> innerDictionaryValueChange)
+                            var changeItemType = innerChange.GetType().GetGenericArguments().Single();
+
+                            if (changeItemType.IsGenericType && changeItemType.GetGenericTypeDefinition() == typeof(IDataDictionary<,>))
                             {
-                                    This.GetOrCreate(childChange.Key, () => (TDataObject) FlowRx.Create.Data.Dictionary<TKey, IDataObject>());
+                                var dictionaryTypes = changeItemType.GetGenericArguments();
+                                This.GetOrCreate(childChange.Key, () => (TDataObject) FlowRx.Create.Data.Dictionary(dictionaryTypes[0], dictionaryTypes[1]));
                             }
                             else
                             {
@@ -121,15 +125,17 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        public void Copy(TKey sourceKey, TKey destinationKey)
-        {
-            throw new NotImplementedException();
-        }
+        public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
-        public void Move(TKey sourceKey, TKey destinationKey)
-        {
-            throw new NotImplementedException();
-        }
+        public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
+
+
+        public IDataObject Create(object key, Func<IDataObject> creator) => Create((TKey)key, creator);
+        public IDataObject? Get(object key) => Get((TKey)key);
+        public void Connect(object key, IDataObject dataObject) => Connect((TKey) key, (TDataObject)dataObject);
+        public void Disconnect(object key) => Disconnect((TKey)key);
+        public void Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
+        public void Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
 
     }
 }

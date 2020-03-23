@@ -7,10 +7,30 @@
 namespace Awesomni.Codes.FlowRx
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDictionary<TKey, TDataObject> : IDataObject, IEnumerable<IDataObject> where TDataObject : class, IDataObject
+    public interface IDataDictionary : IDataObject, IEnumerable
+    {
+        IDataObject Create(object key, Func<IDataObject> creator);
+
+        IDataObject GetOrCreate(object key, Func<IDataObject> creator)
+            => Get(key) ?? Create(key, creator);
+
+        IDataObject? Get(object key);
+
+
+        void Connect(object key, IDataObject dataObject);
+
+        void Disconnect(object key);
+
+        void Copy(object sourceKey, object destinationKey);
+
+        void Move(object sourceKey, object destinationKey);
+    }
+
+    public interface IDataDictionary<TKey, TDataObject> : IDataDictionary, IEnumerable<TDataObject> where TDataObject : class, IDataObject
     {
         QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject;
 

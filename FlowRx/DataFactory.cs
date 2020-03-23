@@ -14,12 +14,6 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataFactory : IDataFactory
     {
-
-        public DataFactory()
-        {
-
-        }
-
         public IDataObject FromChange(IChange change)
         {
             var changeType = change.GetType().GetTypeIfImplemented(typeof(IChange<>));
@@ -31,23 +25,18 @@ namespace Awesomni.Codes.FlowRx
         }
 
         public TDataObject FromChange<TDataObject>(IChange<TDataObject> change) where TDataObject : class, IDataObject
-        {
-            return (TDataObject) Object(typeof(TDataObject));
-        }
+            => (TDataObject)Object(typeof(TDataObject));
 
-        public IDataObject Object(Type objectType)
-        {
-            throw new ArgumentException("The type is not a valid DataObject type");
-        }
+        public IDataObject Object(Type objectType) => throw new ArgumentException("The type is not a valid DataObject type");
+
+        public IDataDictionary Dictionary(Type keyType, Type dataObjectType)
+            => (IDataDictionary)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
 
         public IDataDictionary<TKey, TDataObject> Dictionary<TKey,TDataObject>() where TDataObject : class, IDataObject
             =>  new DataDictionary<TKey, TDataObject>();
 
         public IDataItem<TData> Item<TData>(TData initialValue = default)
             => new DataItem<TData>(initialValue);
-
-        public DataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
-            => new DataObservable<TData>(observable, initialValue);
 
         public IDataItem Item(object initialValue)
             => (IDataItem) GetType()
@@ -61,5 +50,7 @@ namespace Awesomni.Codes.FlowRx
             .MakeGenericMethod(type)
             .Invoke(this, new object?[] { type.GetDefault() });
 
+        public DataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
+            => new DataObservable<TData>(observable, initialValue);
     }
 }
