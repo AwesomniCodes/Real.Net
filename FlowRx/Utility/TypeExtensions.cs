@@ -19,9 +19,10 @@ namespace Awesomni.Codes.FlowRx.Utility
         {
             if (interfaceType.IsGenericType && !interfaceType.IsConstructedGenericType)
             {
-                return type.GetInterfaces().FirstOrDefault(x =>
-                      x.IsGenericType &&
-                      x.GetGenericTypeDefinition() == interfaceType);
+                return type.GetInterfaces()
+                    .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == interfaceType)
+                    .OrderByDescending(x => x.GetGenericArguments().Single().IsGenericType)
+                    .FirstOrDefault();
             }
 
             return type.GetInterfaces().FirstOrDefault(x => x == interfaceType);

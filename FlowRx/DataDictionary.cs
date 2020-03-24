@@ -94,25 +94,15 @@ namespace Awesomni.Codes.FlowRx
                     {
                         if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                         {
-                            var changeItemType = innerChange.GetType().GetGenericArguments().Single();
-
-                            if (changeItemType.IsGenericType && changeItemType.GetGenericTypeDefinition() == typeof(IDataDictionary<,>))
+                            var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single();
+                            if (changeType != null)
                             {
-                                var dictionaryTypes = changeItemType.GetGenericArguments();
-                                This.GetOrCreate(childChange.Key, () => (TDataObject) FlowRx.Create.Data.Dictionary(dictionaryTypes[0], dictionaryTypes[1]));
+                                var dataObject = (TDataObject) FlowRx.Create.Data.Object(changeType, innerValueChange.Value);
+                                Connect(childChange.Key, dataObject);
                             }
                             else
                             {
-                                //Get type of value change here and provide it when value is null, instead
-                                if (innerValueChange.Value == null)
-                                {
-                                    var innerValueChangeType = innerValueChange.GetType().GetGenericArguments().Single();
-                                    This.GetOrCreate(childChange.Key, () => (TDataObject) FlowRx.Create.Data.Item(innerValueChangeType));
-                                }
-                                else
-                                {
-                                    This.GetOrCreate(childChange.Key, () => (TDataObject) FlowRx.Create.Data.Item(innerValueChange.Value));
-                                }
+                                throw new InvalidOperationException("Received an invalid IChangeItem that is not implementing IChange<>");
                             }
                         }
                         else
