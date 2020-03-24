@@ -23,7 +23,9 @@ namespace Awesomni.Codes.FlowRx
         Modify = 16,
         Error = 32,
     }
+
     public interface IChange { }
+
     public interface IChange<out TDataObject> : IChange where TDataObject : class, IDataObject { }
 
     public interface IChangeDictionary : IChange<IDataDictionary>
@@ -38,6 +40,8 @@ namespace Awesomni.Codes.FlowRx
         new IEnumerable<IChange<TDataObject>> Changes { get; }
     }
 
+    public interface IChangeDirectory : IChangeDictionary<string, IDataObject> { }
+
     public interface IChangeItem : IChange<IDataItem>
     {
         ChangeType ChangeType { get; }
@@ -48,12 +52,17 @@ namespace Awesomni.Codes.FlowRx
     {
         new TData Value { get; }
     }
-    
-    public class DictionaryChange<TKey, TDataObject> : IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
+
+    public class ChangeDirectory : ChangeDictionary<string, IDataObject>, IChangeDirectory
+    {
+        internal ChangeDirectory(string key, IEnumerable<IChange<IDataObject>> changes) : base(key, changes) { }
+    }
+
+    public class ChangeDictionary<TKey, TDataObject> : IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
         public TKey Key { get; }
 
-        internal DictionaryChange(TKey key, IEnumerable<IChange<TDataObject>> changes)
+        internal ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
             Changes = changes;
@@ -61,17 +70,15 @@ namespace Awesomni.Codes.FlowRx
 
         public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
 
-#pragma warning disable CS8603 // Possible null reference return.
-        object IChangeDictionary.Key => Key;
-#pragma warning restore CS8603 // Possible null reference return.
+        object IChangeDictionary.Key => Key!;
 
         IEnumerable<IChange> IChangeDictionary.Changes => Changes;
     }
 
 
-    public abstract class DataItemChange : IChangeItem
+    public abstract class ChangeItem : IChangeItem
     {
-        protected DataItemChange(ChangeType changeType, object? value = null)
+        protected ChangeItem(ChangeType changeType, object? value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -84,11 +91,11 @@ namespace Awesomni.Codes.FlowRx
 
 
 
-    public class DataItemChange<TData> : DataItemChange, IChangeItem<TData>
+    public class ChangeItem<TData> : ChangeItem, IChangeItem<TData>
     {
-        internal DataItemChange(ChangeType changeType, TData value = default) : base(changeType, value) { }
+        internal ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
-        public new TData Value => base.Value is TData tValue ? tValue : default;
+        public new TData Value => base.Value is TData tValue ? tValue : default!;
     }
 
 }

@@ -25,21 +25,40 @@ namespace Awesomni.Codes.FlowRx
     public class DataItem<TData> : DataItem, IDataItem<TData>
     {
         private readonly BehaviorSubject<TData> _subject;
-        private readonly IObservable<IEnumerable<IChangeItem>> _outObservable;
         private bool _isDisposed;
-
         internal DataItem(TData initialValue = default)
         {
             _subject = new BehaviorSubject<TData>(initialValue);
 
-            _outObservable = _subject.DistinctUntilChanged()
-                .Publish(pub =>
-                    pub.Take(1).Select(value => Create.Change.Item(ChangeType.Create, value).Yield())
-                    .Merge(
-                        pub.Skip(1).Select(value => Create.Change.Item(ChangeType.Modify, value).Yield())))
-                .Concat(Observable.Return(Create.Change.Item(ChangeType.Complete, _subject.Value).Yield())); //When completed it means for DataChange item is removed
+            Changes = Subject.Create<IEnumerable<IChange>>(
+                    Observer.Create<IEnumerable<IChange>>(changes =>
+                    {
+                        changes.Cast<IChangeItem<TData>>().ForEach(change =>
+                        {
+                            //Handle Errors
+                            if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
 
-            Changes = Subject.Create<IEnumerable<IChange>>(Observer.Create<IEnumerable<IChange>>(OnChangesIn), _outObservable);
+                            if (change.ChangeType.HasFlag(ChangeType.Modify))
+                            {
+                                var data = change.Value is TData value ? value : default!;
+                                if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
+                                {
+                                    _subject.OnNext((TData)change.Value);
+                                }
+                            }
+
+                            if (change.ChangeType.HasFlag(ChangeType.Complete))
+                            {
+                                _subject.OnCompleted();
+                            }
+                        });
+                    }),
+                    _subject.DistinctUntilChanged()
+                    .Publish(pub =>
+                        pub.Take(1).Select(value => Create.Change.Item(ChangeType.Create, value).Yield())
+                        .Merge(
+                            pub.Skip(1).Select(value => Create.Change.Item(ChangeType.Modify, value).Yield())))
+                    .Concat(Observable.Return(Create.Change.Item(ChangeType.Complete, _subject.Value).Yield())));
         }
 
         TData IDataItem<TData>.Value => _subject.Value;
@@ -75,27 +94,5 @@ namespace Awesomni.Codes.FlowRx
             _isDisposed = true;
         }
 
-        private void OnChangesIn(IEnumerable<IChange> changes)
-        {
-            changes.Cast<IChangeItem<TData>>().ForEach(change =>
-            {
-                //Handle Errors
-                if (_isDisposed) OnError(new InvalidOperationException("DataItem is already disposed"));
-
-                if (change.ChangeType.HasFlag(ChangeType.Modify))
-                {
-                    var data = change.Value is TData value ? value : default;
-                    if (!EqualityComparer<TData>.Default.Equals(_subject.Value, data))
-                    {
-                        _subject.OnNext((TData)change.Value);
-                    }
-                }
-
-                if (change.ChangeType.HasFlag(ChangeType.Complete))
-                {
-                    _subject.OnCompleted();
-                }
-            });
-        }
     }
 }

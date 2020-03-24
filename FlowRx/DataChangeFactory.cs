@@ -14,10 +14,43 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataChangeFactory : IDataFactory
     {
-        public DataChangeFactory()
-        {
 
-        }
+        //public IChange Change(Type objectType, params object?[] constructorArgs)
+        //{
+        //    if (objectType.IsGenericType)
+        //    {
+        //        var genericParams = objectType.GetGenericArguments();
+        //        var genericDefinition = objectType.GetGenericTypeDefinition();
+
+        //        if (typeof(IChange).IsAssignableFrom(genericParams[0]))
+        //        {
+        //            return Change(genericParams[0], constructorArgs);
+        //        }
+
+        //        //TODO
+        //        //if (genericDefinition == typeof(ChangeList<>) || genericDefinition == typeof(IChangeList<>))
+        //        //{
+        //        //    return List(genericParams[0], genericParams[1]);
+        //        //}
+
+        //        if (typeof(IChangeDictionary<,>).IsAssignableFrom(genericDefinition))
+        //        {
+        //            return Dictionary(genericParams[0], genericParams[1]);
+        //        }
+
+        //        if (typeof(IChangeItem<>).IsAssignableFrom(genericDefinition))
+        //        {
+        //            return Item(genericParams.Single(), constructorArgs.FirstOrDefault());
+        //        }
+        //    }
+
+        //    if (objectType == typeof(ChangeDirectory) || objectType == typeof(IChangeDirectory))
+        //    {
+        //        return Directory((string)constructorArgs[0], (IEnumerable<IChange<IDataObject>>)constructorArgs[1]);
+        //    }
+
+        //    throw new ArgumentException("The type is unknown", nameof(objectType));
+        //}
 
         public IChangeItem Item(ChangeType changeType, object value)
             => (IChangeItem)GetType()
@@ -32,10 +65,14 @@ namespace Awesomni.Codes.FlowRx
             .Invoke(this, new object?[] { changeType, type.GetDefault() });
 
         public IChangeItem<TData> Item<TData>(ChangeType changeType, TData value = default)
-            => new DataItemChange<TData>(changeType, value);
+            => new ChangeItem<TData>(changeType, value);
 
         public IChangeDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>(TKey key, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
-            => new DictionaryChange<TKey, TDataObject>(key, changes);
+            => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
+            (IChangeDictionary<TKey, TDataObject>) Directory(key as string ?? string.Empty, changes) :
+            new ChangeDictionary<TKey, TDataObject>(key, changes);
 
+        public IChangeDirectory Directory(string key, IEnumerable<IChange<IDataObject>> changes)
+            => new ChangeDirectory(key, changes);
     }
 }

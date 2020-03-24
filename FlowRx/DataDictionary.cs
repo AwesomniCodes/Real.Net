@@ -23,6 +23,9 @@ namespace Awesomni.Codes.FlowRx
         private readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> item;
         private readonly ISubject<IEnumerable<IChange<IDataObject>>> _outSubject;
         private IDataDictionary<TKey, TDataObject> This => this;
+
+        protected Lazy<ISubject<IEnumerable<IChange>>> _ChangesSubject;
+
         internal DataDictionary()
         {
             item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
@@ -30,7 +33,12 @@ namespace Awesomni.Codes.FlowRx
             _outSubject = new Subject<IEnumerable<IChange<IDataObject>>>();
             var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => FlowRx.Create.Change.Dictionary<TKey, TDataObject>(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield()));
             var outObservable = Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield()).Concat(_outSubject.Merge(childChangesObservable));
-            Changes = Subject.Create<IEnumerable<IChange>>(Observer.Create<IEnumerable<IChange>>(OnChangesIn), outObservable);
+
+
+            _ChangesSubject = new Lazy<ISubject<IEnumerable<IChange>>>(
+                Subject.Create<IEnumerable<IChange>>(
+                    Observer.Create<IEnumerable<IChange>>(OnChangesIn),outObservable)
+                );
 
 
             //Subscription to remove completed childs from list
@@ -52,7 +60,8 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        public override ISubject<IEnumerable<IChange>> Changes { get; }
+        public override ISubject<IEnumerable<IChange>> Changes => _ChangesSubject.Value;
+
         public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

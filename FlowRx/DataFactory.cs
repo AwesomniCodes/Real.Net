@@ -15,22 +15,6 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataFactory : IDataFactory
     {
-        public IDataObject FromChange(IChange change)
-        {
-            var changeType = change.GetType().GetTypeIfImplemented(typeof(IChange<>));
-            if (changeType != null)
-            {
-                var genericParams = changeType.GetGenericArguments();
-                return Object(genericParams.Single());
-            }
-
-            throw new ArgumentException("The change must also implement the generic change interface", nameof(change));
-        }
-
-        public TDataObject FromChange<TDataObject>(IChange<TDataObject> change) where TDataObject : class, IDataObject
-            => Object<TDataObject>();
-
-
         public TDataObject Object<TDataObject>() where TDataObject : class, IDataObject
             => (TDataObject)Object(typeof(TDataObject));
 
@@ -47,32 +31,31 @@ namespace Awesomni.Codes.FlowRx
                 }
 
                 //TODO
-                //if (genericDefinition == typeof(DataList<>) || genericDefinition == typeof(IDataList<>))
+                //if (typeof(IDataList<>).IsAssignableFrom(genericDefinition))
                 //{
                 //    return List(genericParams[0], genericParams[1]);
                 //}
 
-                if (genericDefinition == typeof(DataDictionary<,>) || genericDefinition == typeof(IDataDictionary<,>))
+                if (typeof(IDataDictionary<,>).IsAssignableFrom(genericDefinition))
                 {
                     return Dictionary(genericParams[0], genericParams[1]);
                 }
 
-                if (genericDefinition == typeof(DataObservable<>) /*|| genericDefinition == typeof(IDataObservable<>)*/)
+                if (typeof(/*I*/DataObservable<>).IsAssignableFrom(genericDefinition))
                 {
                     return Observable(genericParams.Single());
                 }
 
-                if (genericDefinition == typeof(DataItem<>) || genericDefinition == typeof(IDataItem<>))
+                if (typeof(IDataItem<>).IsAssignableFrom(genericDefinition))
                 {
                     return Item(genericParams.Single(), constructorArgs.FirstOrDefault());
                 }
             }
 
-            //TODO
-            //if (objectType == typeof(DataDirectory) || objectType == typeof(IDataDirectory))
-            //{
-            //    return Directory();
-            //}
+            if (typeof(IDataDirectory).IsAssignableFrom(objectType))
+            {
+                return Directory();
+            }
 
             throw new ArgumentException("The type is unknown", nameof(objectType));
         }
@@ -82,6 +65,8 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataDictionary<TKey, TDataObject> Dictionary<TKey,TDataObject>() where TDataObject : class, IDataObject
             =>  new DataDictionary<TKey, TDataObject>();
+
+        public IDataDirectory Directory() => new DataDirectory();
 
         public IDataItem<TData> Item<TData>(TData initialValue = default)
             => new DataItem<TData>(initialValue);
