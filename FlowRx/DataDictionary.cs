@@ -20,26 +20,13 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataDictionary<TKey, TDataObject> : DataObject, IDataDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
-        private readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> item;
-        private readonly ISubject<IEnumerable<IChange<IDataObject>>> _outSubject;
-        private IDataDictionary<TKey, TDataObject> This => this;
-
-        protected Lazy<ISubject<IEnumerable<IChange>>> _ChangesSubject;
+        protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> item;
 
         internal DataDictionary()
         {
             item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
 
-            _outSubject = new Subject<IEnumerable<IChange<IDataObject>>>();
-            var childChangesObservable = item.Switch().MergeMany(dO => dO.DataObject.Changes.Select(changes => FlowRx.Create.Change.Dictionary<TKey, TDataObject>(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield()));
-            var outObservable = Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield()).Concat(_outSubject.Merge(childChangesObservable));
-
-
-            _ChangesSubject = new Lazy<ISubject<IEnumerable<IChange>>>(
-                Subject.Create<IEnumerable<IChange>>(
-                    Observer.Create<IEnumerable<IChange>>(OnChangesIn),outObservable)
-                );
-
+            Changes = CreateChangesSubject();
 
             //Subscription to remove completed childs from list
             Changes.Subscribe(childChanges =>
@@ -60,7 +47,57 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        public override ISubject<IEnumerable<IChange>> Changes => _ChangesSubject.Value;
+        protected virtual ISubject<IEnumerable<IChange>> CreateChangesSubject()
+            => Subject.Create<IEnumerable<IChange>>(
+                    CreateObserverForChangesSubject(),
+                    CreateObservableForChangesSubject());
+
+        protected virtual IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+            => Observer.Create<IEnumerable<IChange>>(changes =>
+            {
+                changes.ForEach(change =>
+                {
+                    if (change is IChangeItem<TDataObject>)
+                    {
+                        //TODO: The whole dictionary gets replaced
+                        //item.OnNext(change);
+                    }
+                    else if (change is IChangeDictionary<TKey, TDataObject> childChange)
+                    {
+                        childChange.Changes.ForEach(innerChange =>
+                        {
+                            if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
+                            {
+                                var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single();
+                                if (changeType != null)
+                                {
+                                    var dataObject = (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value);
+                                    Connect(childChange.Key, dataObject);
+                                }
+                                else
+                                {
+                                    throw new InvalidOperationException("Received an invalid IChangeItem that is not implementing IChange<>");
+                                }
+                            }
+                            else
+                            {
+                                Get<TDataObject>(childChange.Key).NullThrow().Changes.OnNext(innerChange.Yield());
+                            }
+
+                        });
+                    }
+                });
+            });
+
+        protected virtual IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
+            => Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield())
+               .Concat<IEnumerable<IChange<IDataObject>>>(
+                    item.Switch()
+                    .MergeMany(dO =>
+                        dO.DataObject.Changes
+                        .Select(changes => FlowRx.Create.Change.Dictionary<TKey, TDataObject>(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield())));
+
+        public override ISubject<IEnumerable<IChange>> Changes { get; }
 
         public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
 
@@ -86,42 +123,6 @@ namespace Awesomni.Codes.FlowRx
         {
             var dOItem = item.Value.Lookup(key).ValueOrDefault();
             item.Value.Remove(key);
-        }
-
-        private void OnChangesIn(IEnumerable<IChange> changes)
-        {
-            changes.ForEach(change =>
-            {
-                if (change is IChangeItem<TDataObject>)
-                {
-                    //TODO: The whole dictionary gets replaced
-                    //item.OnNext(change);
-                }
-                else if(change is IChangeDictionary<TKey, TDataObject> childChange)
-                {
-                    childChange.Changes.ForEach(innerChange =>
-                    {
-                        if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
-                        {
-                            var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single();
-                            if (changeType != null)
-                            {
-                                var dataObject = (TDataObject) FlowRx.Create.Data.Object(changeType, innerValueChange.Value);
-                                Connect(childChange.Key, dataObject);
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Received an invalid IChangeItem that is not implementing IChange<>");
-                            }
-                        }
-                        else
-                        {
-                            Get<TDataObject>(childChange.Key).NullThrow().Changes.OnNext(innerChange.Yield());
-                        }
-
-                    });
-                }
-            });
         }
 
         public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
