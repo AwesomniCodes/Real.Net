@@ -40,6 +40,17 @@ namespace Awesomni.Codes.FlowRx
         new IEnumerable<IChange<TDataObject>> Changes { get; }
     }
 
+    public interface IChangeList : IChange<IDataList>
+    {
+        int Key { get; }
+        IEnumerable<IChange> Changes { get; }
+    }
+
+    public interface IChangeList<TDataObject> : IChangeList, IChange<IDataList<TDataObject>> where TDataObject : class, IDataObject
+    {
+        new IEnumerable<IChange<TDataObject>> Changes { get; }
+    }
+
     public interface IChangeDirectory : IChangeDictionary<string, IDataObject> { }
 
     public interface IChangeItem : IChange<IDataItem>
@@ -89,13 +100,27 @@ namespace Awesomni.Codes.FlowRx
         public object? Value { get; }
     }
 
-
-
     public class ChangeItem<TData> : ChangeItem, IChangeItem<TData>
     {
         internal ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
         public new TData Value => base.Value is TData tValue ? tValue : default!;
+    }
+
+
+    public class ChangeList<TDataObject> : IChangeList<TDataObject> where TDataObject : class, IDataObject
+    {
+        public int Key { get; }
+
+        internal ChangeList(int key, IEnumerable<IChange<TDataObject>> changes)
+        {
+            Key = key;
+            Changes = changes;
+        }
+
+        public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
+
+        IEnumerable<IChange> IChangeList.Changes => Changes;
     }
 
 }

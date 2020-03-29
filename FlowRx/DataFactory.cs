@@ -77,6 +77,12 @@ namespace Awesomni.Codes.FlowRx
             .MakeGenericMethod(type)
             .Invoke(this, new object?[] { initialValue });
 
+        public IDataList List(Type dataObjectType)
+            => (IDataList)Activator.CreateInstance(typeof(DataList<>).MakeGenericType(dataObjectType), true);
+
+        public IDataList<TDataObject> List<TDataObject>() where TDataObject : class, IDataObject
+            => new DataList<TDataObject>();
+
         public DataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
             => new DataObservable<TData>(observable, initialValue);
         

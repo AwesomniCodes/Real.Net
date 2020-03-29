@@ -74,5 +74,8 @@ namespace Awesomni.Codes.FlowRx
 
         public IChangeDirectory Directory(string key, IEnumerable<IChange<IDataObject>> changes)
             => new ChangeDirectory(key, changes);
+
+        public IChangeList<TDataObject> List<TDataObject>(int index, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
+            => new ChangeList<TDataObject>(index, changes);
     }
 }

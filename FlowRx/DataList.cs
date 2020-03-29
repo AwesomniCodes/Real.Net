@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="DataDictionary.cs" project="FlowRx" solution="FlowRx" />
+//    file="DataList.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -18,13 +18,13 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataDictionary<TKey, TDataObject> : DataObject, IDataDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
+    public class DataList<TDataObject> : DataObject, IDataList<TDataObject> where TDataObject : class, IDataObject
     {
-        protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> item;
+        protected readonly BehaviorSubject<SourceList<TDataObject>> item;
 
-        internal DataDictionary()
+        internal DataList()
         {
-            item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
+            item = new BehaviorSubject<SourceList<TDataObject>>(new SourceList<TDataObject>());
 
             Changes = CreateChangesSubject();
 
@@ -32,7 +32,7 @@ namespace Awesomni.Codes.FlowRx
             Changes.Subscribe(childChanges =>
             {
                 var completedKeys = childChanges
-                .OfType<IChangeDictionary<TKey, TDataObject>>()
+                .OfType<IChangeList<TDataObject>>()
                 .SelectMany(childChange =>
                                 childChange
                                 .Changes
@@ -42,27 +42,27 @@ namespace Awesomni.Codes.FlowRx
 
                 completedKeys.ForEach(key =>
                 {
-                    item.Value.Remove(key);
+                    item.Value.RemoveAt(key);
                 });
             });
         }
 
-        protected virtual ISubject<IEnumerable<IChange>> CreateChangesSubject()
+        private ISubject<IEnumerable<IChange>> CreateChangesSubject()
             => Subject.Create<IEnumerable<IChange>>(
                     CreateObserverForChangesSubject(),
                     CreateObservableForChangesSubject());
 
-        protected virtual IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+        private IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
             => Observer.Create<IEnumerable<IChange>>(changes =>
             {
                 changes.ForEach(change =>
                 {
                     if (change is IChangeItem<TDataObject>)
                     {
-                        //TODO: The whole dictionary gets replaced
+                        //TODO: The whole list gets replaced
                         //item.OnNext(change);
                     }
-                    else if (change is IChangeDictionary<TKey, TDataObject> childChange)
+                    else if (change is IChangeList<TDataObject> childChange)
                     {
                         childChange.Changes.ForEach(innerChange =>
                         {
@@ -83,59 +83,63 @@ namespace Awesomni.Codes.FlowRx
                             {
                                 Get<TDataObject>(childChange.Key).NullThrow().Changes.OnNext(innerChange.Yield());
                             }
-
                         });
                     }
                 });
             });
 
-        protected virtual IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield())
+        private IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
+            => Observable.Return(FlowRx.Create.Change.Item<IDataList<TDataObject>>(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
                     item.Switch()
-                    .MergeMany(dO =>
-                        dO.DataObject.Changes
-                        .Select(changes => FlowRx.Create.Change.Dictionary(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield())));
+                    .Transform((dO, index) => (DataObject: dO, Index: index))
+                    .MergeMany(dOWithIndex => 
+                        dOWithIndex.DataObject.Changes
+                        .Select(changes => FlowRx.Create.Change.List<TDataObject>(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
-        public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
+        public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO).GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject
+        public QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
             var data = creator();
             Connect(key, data);
             return data;
         }
 
-        public QDataObject Get<QDataObject>(TKey key) where QDataObject : class, TDataObject
-            => (QDataObject) item.Value.Lookup(key).ValueOrDefault().DataObject;
+        public QDataObject Get<QDataObject>(int key) where QDataObject : class, TDataObject
+            => (QDataObject) item.Value.Items.ElementAt(key);
 
-        public void Connect(TKey key, TDataObject dataObject)
+        public void Connect(int key, TDataObject dataObject)
         {
-            item.Value.AddOrUpdate((key, dataObject));
+            item.Value.Insert(key, dataObject);
         }
 
-
-        public void Disconnect(TKey key)
+        public void Disconnect(int key)
         {
-            var dOItem = item.Value.Lookup(key).ValueOrDefault();
-            item.Value.Remove(key);
+            item.Value.RemoveAt(key);
         }
 
-        public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
+        public void Copy(int sourceKey, int destinationKey) => throw new NotImplementedException();
 
-        public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
+        public void Move(int sourceKey, int destinationKey) => throw new NotImplementedException();
 
+        public IDataObject Create(int key, Func<IDataObject> creator)
+        {
+            throw new NotImplementedException();
+        }
 
-        public IDataObject Create(object key, Func<IDataObject> creator) => Create((TKey)key, creator);
-        public IDataObject? Get(object key) => Get((TKey)key);
-        public void Connect(object key, IDataObject dataObject) => Connect((TKey) key, (TDataObject)dataObject);
-        public void Disconnect(object key) => Disconnect((TKey)key);
-        public void Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
-        public void Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
+        public IDataObject? Get(int key)
+        {
+            throw new NotImplementedException();
+        }
 
+        public void Connect(int key, IDataObject dataObject)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
