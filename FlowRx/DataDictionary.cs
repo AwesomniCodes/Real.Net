@@ -68,22 +68,14 @@ namespace Awesomni.Codes.FlowRx
                         {
                             if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                             {
-                                var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single();
-                                if (changeType != null)
-                                {
-                                    var dataObject = (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value);
-                                    Connect(childChange.Key, dataObject);
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException("Received an invalid IChangeItem that is not implementing IChange<>");
-                                }
+                                var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single()!;
+
+                                Create(childChange.Key, () => (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value));
                             }
                             else
                             {
                                 Get<TDataObject>(childChange.Key).NullThrow().Changes.OnNext(innerChange.Yield());
                             }
-
                         });
                     }
                 });
@@ -121,6 +113,12 @@ namespace Awesomni.Codes.FlowRx
 
         public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
+        public TDataObject this[TKey key]
+        {
+            get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException("No value under key available");
+            set => Connect(key, value);
+        }
+
         #region ungeneric interface
         IDataObject IDataDictionary.Create(object key, Func<IDataObject> creator)
             => Create(
@@ -131,6 +129,7 @@ namespace Awesomni.Codes.FlowRx
         void IDataDictionary.Disconnect(object key) => Disconnect((TKey)key);
         void IDataDictionary.Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
         void IDataDictionary.Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
+        IDataObject IDataDictionary.this[object index] { get => this[(TKey) index]; set => this[(TKey)index] = (TDataObject) value; }
         #endregion
     }
 }

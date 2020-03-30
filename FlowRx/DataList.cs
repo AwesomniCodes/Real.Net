@@ -95,13 +95,13 @@ namespace Awesomni.Codes.FlowRx
                     .Transform((dO, index) => (DataObject: dO, Index: index))
                     .MergeMany(dOWithIndex => 
                         dOWithIndex.DataObject.Changes
-                        .Select(changes => FlowRx.Create.Change.List<TDataObject>(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
+                        .Select(changes => FlowRx.Create.Change.List(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
         public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
@@ -110,17 +110,17 @@ namespace Awesomni.Codes.FlowRx
             return data;
         }
 
-        public QDataObject Get<QDataObject>(int key) where QDataObject : class, TDataObject
+        public QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject
             => (QDataObject) item.Value.Items.ElementAt(key);
 
-        public void Connect(int key, TDataObject dataObject)
-        {
-            item.Value.Insert(key, dataObject);
-        }
+        public void Connect(int key, TDataObject dataObject) => item.Value.Insert(key, dataObject);
 
-        public void Disconnect(int key)
+        public void Disconnect(int key) => item.Value.RemoveAt(key);
+
+        public TDataObject this[int key]
         {
-            item.Value.RemoveAt(key);
+            get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException($"No value under Key \"{key}\" available");
+            set => item.Value.ReplaceAt(key, value);
         }
 
         public void Copy(int sourceKey, int destinationKey) => throw new NotImplementedException();
@@ -134,6 +134,7 @@ namespace Awesomni.Codes.FlowRx
                 () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to list type"));
         IDataObject? IDataList.Get(int key) => Get<TDataObject>(key);
         void IDataList.Connect(int key, IDataObject dataObject) => Connect(key, (TDataObject)dataObject);
+        IDataObject IDataList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
         #endregion
     }
 }

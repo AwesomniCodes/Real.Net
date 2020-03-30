@@ -27,6 +27,8 @@ namespace Awesomni.Codes.FlowRx
         void Copy(int sourceKey, int destinationKey);
 
         void Move(int sourceKey, int destinationKey);
+
+        IDataObject this[int index] { get; set; }
     }
 
     public interface IDataList<TDataObject> : IDataList, IEnumerable<TDataObject> where TDataObject : class, IDataObject
@@ -38,7 +40,8 @@ namespace Awesomni.Codes.FlowRx
 
         QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject;
 
-
         void Connect(int key, TDataObject dataObject);
+
+        new TDataObject this[int index] { get; set; }
     }
 }

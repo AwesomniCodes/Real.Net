@@ -28,6 +28,8 @@ namespace Awesomni.Codes.FlowRx
         void Copy(object sourceKey, object destinationKey);
 
         void Move(object sourceKey, object destinationKey);
+
+        IDataObject this[object index] { get; set; }
     }
 
     public interface IDataDictionary<TKey, TDataObject> : IDataDictionary, IEnumerable<TDataObject> where TDataObject : class, IDataObject
@@ -47,5 +49,7 @@ namespace Awesomni.Codes.FlowRx
         void Copy(TKey sourceKey, TKey destinationKey);
 
         void Move(TKey sourceKey, TKey destinationKey);
+
+        TDataObject this[TKey index] { get; set; }
     }
 }
