@@ -20,7 +20,6 @@ namespace Awesomni.Codes.FlowRx
 
         IDataObject? Get(int key);
 
-
         void Connect(int key, IDataObject dataObject);
 
         void Disconnect(int key);

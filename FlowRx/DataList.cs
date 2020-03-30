@@ -127,19 +127,13 @@ namespace Awesomni.Codes.FlowRx
 
         public void Move(int sourceKey, int destinationKey) => throw new NotImplementedException();
 
-        public IDataObject Create(int key, Func<IDataObject> creator)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDataObject? Get(int key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Connect(int key, IDataObject dataObject)
-        {
-            throw new NotImplementedException();
-        }
+        #region ungeneric interface
+        IDataObject IDataList.Create(int key, Func<IDataObject> creator)
+            => Create(
+                key,
+                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to list type"));
+        IDataObject? IDataList.Get(int key) => Get<TDataObject>(key);
+        void IDataList.Connect(int key, IDataObject dataObject) => Connect(key, (TDataObject)dataObject);
+        #endregion
     }
 }

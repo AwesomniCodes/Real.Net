@@ -109,33 +109,28 @@ namespace Awesomni.Codes.FlowRx
             Connect(key, data);
             return data;
         }
+        
+        public QDataObject? Get<QDataObject>(TKey key) where QDataObject : class, TDataObject
+            => item.Value.Lookup(key).ValueOrDefault().DataObject as QDataObject;
 
-        public QDataObject Get<QDataObject>(TKey key) where QDataObject : class, TDataObject
-            => (QDataObject) item.Value.Lookup(key).ValueOrDefault().DataObject;
+        public void Connect(TKey key, TDataObject dataObject) => item.Value.AddOrUpdate((key, dataObject));
 
-        public void Connect(TKey key, TDataObject dataObject)
-        {
-            item.Value.AddOrUpdate((key, dataObject));
-        }
-
-
-        public void Disconnect(TKey key)
-        {
-            var dOItem = item.Value.Lookup(key).ValueOrDefault();
-            item.Value.Remove(key);
-        }
+        public void Disconnect(TKey key) => item.Value.Remove(key);
 
         public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
         public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
-
-        public IDataObject Create(object key, Func<IDataObject> creator) => Create((TKey)key, creator);
-        public IDataObject? Get(object key) => Get((TKey)key);
-        public void Connect(object key, IDataObject dataObject) => Connect((TKey) key, (TDataObject)dataObject);
-        public void Disconnect(object key) => Disconnect((TKey)key);
-        public void Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
-        public void Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
-
+        #region ungeneric interface
+        IDataObject IDataDictionary.Create(object key, Func<IDataObject> creator)
+            => Create(
+                (TKey)key,
+                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to dictionary type"));
+        IDataObject? IDataDictionary.Get(object key) => item.Value.Lookup((TKey)key).ValueOrDefault().DataObject;
+        void IDataDictionary.Connect(object key, IDataObject dataObject) => Connect((TKey)key, (TDataObject)dataObject);
+        void IDataDictionary.Disconnect(object key) => Disconnect((TKey)key);
+        void IDataDictionary.Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
+        void IDataDictionary.Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
+        #endregion
     }
 }
