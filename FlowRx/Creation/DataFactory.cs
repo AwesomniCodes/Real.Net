@@ -30,11 +30,10 @@ namespace Awesomni.Codes.FlowRx
                     return Object(genericParams[0], constructorArgs);
                 }
 
-                //TODO
-                //if (typeof(IDataList<>).IsAssignableFrom(genericDefinition))
-                //{
-                //    return List(genericParams[0], genericParams[1]);
-                //}
+                if (typeof(IDataList<>).IsAssignableFrom(genericDefinition))
+                {
+                    return List(genericParams.Single());
+                }
 
                 if (typeof(IDataDictionary<,>).IsAssignableFrom(genericDefinition))
                 {
