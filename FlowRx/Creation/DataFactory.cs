@@ -40,7 +40,7 @@ namespace Awesomni.Codes.FlowRx
                     return Dictionary(genericParams[0], genericParams[1]);
                 }
 
-                if (typeof(/*I*/DataObservable<>).IsAssignableFrom(genericDefinition))
+                if (typeof(IDataObservable<>).IsAssignableFrom(genericDefinition))
                 {
                     return Observable(genericParams.Single());
                 }
@@ -82,7 +82,7 @@ namespace Awesomni.Codes.FlowRx
         public IDataList<TDataObject> List<TDataObject>() where TDataObject : class, IDataObject
             => new DataList<TDataObject>();
 
-        public DataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
+        public IDataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
             => new DataObservable<TData>(observable, initialValue);
         
         public IDataObject Observable(Type type)
