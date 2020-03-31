@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="DataChangeFactory.cs" project="FlowRx" solution="FlowRx" />
+//    file="ChangeFactory.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataChangeFactory : IDataFactory
+    public class ChangeFactory : IDataFactory
     {
 
         //public IChange Change(Type objectType, params object?[] constructorArgs)
