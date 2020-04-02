@@ -21,13 +21,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DynamicData" Version="6.14.8" />
-    <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="System.Reactive" Version="4.3.2" />
+    <Compile Remove="Changes\**" />
+    <EmbeddedResource Remove="Changes\**" />
+    <None Remove="Changes\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Changes\" />
+    <PackageReference Include="DynamicData" Version="6.14.8" />
+    <PackageReference Include="log4net" Version="2.0.8" />
+    <PackageReference Include="System.Reactive" Version="4.3.2" />
   </ItemGroup>
 
 </Project>

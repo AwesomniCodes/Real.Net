@@ -13,57 +13,53 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
+
     public class DataFactory : IDataFactory
     {
+        private readonly IList<ObjectCreation<IDataObject>> _typeCreations = new List<ObjectCreation<IDataObject>>();
+        public DataFactory()
+        {
+            AddCreation((type, _) => typeof(IDataDirectory).IsAssignableFrom(type) ? Directory() : null);
+
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                => typeof(IDataList<>).IsAssignableFrom(genericDefinition) ? List(genericArguments.Single()) : null );
+
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                => typeof(IDataObject).IsAssignableFrom(genericArguments[0]) ? Object(genericArguments.Single()) : null);
+
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                => typeof(IDataDictionary<,>).IsAssignableFrom(genericDefinition) ? Dictionary(genericArguments[0], genericArguments[1]) : null);
+
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                           => typeof(IDataObservable<>).IsAssignableFrom(genericDefinition) ? Observable(genericArguments.Single()) : null);
+            
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                           => typeof(IDataItem<>).IsAssignableFrom(genericDefinition) ? Item(genericArguments.Single(), constructionArguments.FirstOrDefault()) : null);
+
+        }
+
+        public void AddGenericCreation(ObjectGenericCreation<IDataObject> creation)
+        {
+            AddCreation((type, arguments) => type.IsGenericType ? creation(type, type.GetGenericTypeDefinition(), type.GetGenericArguments(), arguments) : null );
+        }
+
+        public void AddCreation(ObjectCreation<IDataObject> creation)
+        {
+            _typeCreations.Add(creation);
+        }
+
         public TDataObject Object<TDataObject>() where TDataObject : class, IDataObject
             => (TDataObject)Object(typeof(TDataObject));
 
         public IDataObject Object(Type objectType, params object?[] constructorArgs)
-        {
-            if (objectType.IsGenericType)
-            {
-                var genericParams = objectType.GetGenericArguments();
-                var genericDefinition = objectType.GetGenericTypeDefinition();
-
-                if (typeof(IDataObject).IsAssignableFrom(genericParams[0]))
-                {
-                    return Object(genericParams[0], constructorArgs);
-                }
-
-                if (typeof(IDataList<>).IsAssignableFrom(genericDefinition))
-                {
-                    return List(genericParams.Single());
-                }
-
-                if (typeof(IDataDictionary<,>).IsAssignableFrom(genericDefinition))
-                {
-                    return Dictionary(genericParams[0], genericParams[1]);
-                }
-
-                if (typeof(IDataObservable<>).IsAssignableFrom(genericDefinition))
-                {
-                    return Observable(genericParams.Single());
-                }
-
-                if (typeof(IDataItem<>).IsAssignableFrom(genericDefinition))
-                {
-                    return Item(genericParams.Single(), constructorArgs.FirstOrDefault());
-                }
-            }
-
-            if (typeof(IDataDirectory).IsAssignableFrom(objectType))
-            {
-                return Directory();
-            }
-
-            throw new ArgumentException("The type is unknown", nameof(objectType));
-        }
+            => _typeCreations.Select(x => x(objectType, constructorArgs)).FirstOrDefault(o => o != null)
+                ?? throw new ArgumentException("The type is unknown", nameof(objectType));
 
         public IDataDictionary Dictionary(Type keyType, Type dataObjectType)
             => (IDataDictionary)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
 
-        public IDataDictionary<TKey, TDataObject> Dictionary<TKey,TDataObject>() where TDataObject : class, IDataObject
-            =>  new DataDictionary<TKey, TDataObject>();
+        public IDataDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>() where TDataObject : class, IDataObject
+            => new DataDictionary<TKey, TDataObject>();
 
         public IDataDirectory Directory() => new DataDirectory();
 
@@ -84,7 +80,7 @@ namespace Awesomni.Codes.FlowRx
 
         public IDataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
             => new DataObservable<TData>(observable, initialValue);
-        
+
         public IDataObject Observable(Type type)
             => (IDataObject)GetType()
             .GetMethod(nameof(Observable), 1, new Type[] { Type.MakeGenericMethodParameter(0) })
