@@ -11,7 +11,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataList : IDataObject, IEnumerable
+    public interface IDataList : IDataObject, IEnumerable/*, ICollection, IList*/
     {
         IDataObject Create(int key, Func<IDataObject> creator);
 
@@ -24,14 +24,10 @@ namespace Awesomni.Codes.FlowRx
 
         void Disconnect(int key);
 
-        void Copy(int sourceKey, int destinationKey);
-
-        void Move(int sourceKey, int destinationKey);
-
         IDataObject this[int index] { get; set; }
     }
 
-    public interface IDataList<TDataObject> : IDataList, IEnumerable<TDataObject> where TDataObject : class, IDataObject
+    public interface IDataList<TDataObject> : IDataList, IEnumerable<TDataObject>, ICollection<TDataObject>, IList<TDataObject>, IReadOnlyCollection<TDataObject> where TDataObject : class, IDataObject
     {
         QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject;
 

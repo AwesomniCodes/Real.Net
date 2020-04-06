@@ -20,11 +20,11 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataList<TDataObject> : DataObject, IDataList<TDataObject> where TDataObject : class, IDataObject
     {
-        protected readonly BehaviorSubject<SourceList<TDataObject>> item;
+        protected readonly BehaviorSubject<SourceList<TDataObject>> _item;
 
         internal DataList()
         {
-            item = new BehaviorSubject<SourceList<TDataObject>>(new SourceList<TDataObject>());
+            _item = new BehaviorSubject<SourceList<TDataObject>>(new SourceList<TDataObject>());
 
             Changes = CreateChangesSubject();
 
@@ -42,7 +42,7 @@ namespace Awesomni.Codes.FlowRx
 
                 completedKeys.ForEach(key =>
                 {
-                    item.Value.RemoveAt(key);
+                    _item.Value.RemoveAt(key);
                 });
             });
         }
@@ -91,17 +91,13 @@ namespace Awesomni.Codes.FlowRx
         private IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(FlowRx.Create.Change.Item<IDataList<TDataObject>>(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
-                    item.Switch()
+                    _item.Switch()
                     .Transform((dO, index) => (DataObject: dO, Index: index))
                     .MergeMany(dOWithIndex => 
                         dOWithIndex.DataObject.Changes
                         .Select(changes => FlowRx.Create.Change.List(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
-
-        public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO).GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         public QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
@@ -111,21 +107,32 @@ namespace Awesomni.Codes.FlowRx
         }
 
         public QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject
-            => (QDataObject) item.Value.Items.ElementAt(key);
+            => (QDataObject) _item.Value.Items.ElementAt(key);
 
-        public void Connect(int key, TDataObject dataObject) => item.Value.Insert(key, dataObject);
+        public void Connect(int key, TDataObject dataObject) => _item.Value.Insert(key, dataObject);
 
-        public void Disconnect(int key) => item.Value.RemoveAt(key);
+        public void Disconnect(int key) => _item.Value.RemoveAt(key);
 
+        #region common list implementations
         public TDataObject this[int key]
         {
             get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException($"No value under Key \"{key}\" available");
-            set => item.Value.ReplaceAt(key, value);
+            set => _item.Value.ReplaceAt(key, value);
         }
-
-        public void Copy(int sourceKey, int destinationKey) => throw new NotImplementedException();
-
-        public void Move(int sourceKey, int destinationKey) => throw new NotImplementedException();
+        IDataObject IDataList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
+        public int Count => _item.Value.Count;
+        public bool IsReadOnly => false;
+        public int IndexOf(TDataObject item) => _item.Value.Items.IndexOf(item);
+        public void Insert(int index, TDataObject item) => _item.Value.Insert(index, item);
+        public void RemoveAt(int index) => _item.Value.RemoveAt(index);
+        public void Add(TDataObject item) => _item.Value.Add(item);
+        public void Clear() => _item.Value.Clear();
+        public bool Contains(TDataObject item) => _item.Value.Items.Contains(item);
+        public void CopyTo(TDataObject[] array, int arrayIndex) => _item.Value.Items.Select((dO, index) => (dO, index)).ForEach(item => array[arrayIndex + item.index] = item.dO);
+        public bool Remove(TDataObject item) => _item.Value.Remove(item);
+        public IEnumerator<TDataObject> GetEnumerator() => _item.Value.Items.Select(dO => dO).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
 
         #region ungeneric interface
         IDataObject IDataList.Create(int key, Func<IDataObject> creator)
@@ -134,7 +141,6 @@ namespace Awesomni.Codes.FlowRx
                 () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to list type"));
         IDataObject? IDataList.Get(int key) => Get<TDataObject>(key);
         void IDataList.Connect(int key, IDataObject dataObject) => Connect(key, (TDataObject)dataObject);
-        IDataObject IDataList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
         #endregion
     }
 }
