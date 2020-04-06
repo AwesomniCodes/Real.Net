@@ -23,7 +23,7 @@ namespace Awesomni.Codes.FlowRx
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(FlowRx.Create.Change.Item<IDataDirectory>(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
-                    item.Switch()
+                    _item.Switch()
                     .MergeMany(dO =>
                         dO.DataObject.Changes
                         .Select(changes => FlowRx.Create.Change.Directory(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));

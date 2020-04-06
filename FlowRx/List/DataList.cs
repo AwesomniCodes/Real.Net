@@ -113,7 +113,7 @@ namespace Awesomni.Codes.FlowRx
 
         public void Disconnect(int key) => _item.Value.RemoveAt(key);
 
-        #region common list implementations
+        #region Common List implementations
         public TDataObject this[int key]
         {
             get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException($"No value under Key \"{key}\" available");

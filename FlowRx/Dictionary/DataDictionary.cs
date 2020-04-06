@@ -20,11 +20,11 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataDictionary<TKey, TDataObject> : DataObject, IDataDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
-        protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> item;
+        protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> _item;
 
         internal DataDictionary()
         {
-            item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
+            _item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
 
             Changes = CreateChangesSubject();
 
@@ -42,7 +42,7 @@ namespace Awesomni.Codes.FlowRx
 
                 completedKeys.ForEach(key =>
                 {
-                    item.Value.Remove(key);
+                    _item.Value.Remove(key);
                 });
             });
         }
@@ -84,16 +84,12 @@ namespace Awesomni.Codes.FlowRx
         protected virtual IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
-                    item.Switch()
+                    _item.Switch()
                     .MergeMany(dO =>
                         dO.DataObject.Changes
                         .Select(changes => FlowRx.Create.Change.Dictionary(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
-
-        public IEnumerator<TDataObject> GetEnumerator() => item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
         public QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
@@ -103,15 +99,84 @@ namespace Awesomni.Codes.FlowRx
         }
         
         public QDataObject? Get<QDataObject>(TKey key) where QDataObject : class, TDataObject
-            => item.Value.Lookup(key).ValueOrDefault().DataObject as QDataObject;
+            => _item.Value.Lookup(key).ValueOrDefault().DataObject as QDataObject;
 
-        public void Connect(TKey key, TDataObject dataObject) => item.Value.AddOrUpdate((key, dataObject));
+        public void Connect(TKey key, TDataObject dataObject) => _item.Value.AddOrUpdate((key, dataObject));
 
-        public void Disconnect(TKey key) => item.Value.Remove(key);
+        public void Disconnect(TKey key) => _item.Value.Remove(key);
 
         public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
         public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
+
+        #region ungeneric interface
+        IDataObject IDataDictionary.Create(object key, Func<IDataObject> creator)
+            => Create(
+                (TKey)key,
+                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to dictionary type"));
+        IDataObject? IDataDictionary.Get(object key) => _item.Value.Lookup((TKey)key).ValueOrDefault().DataObject;
+        void IDataDictionary.Connect(object key, IDataObject dataObject) => Connect((TKey)key, (TDataObject)dataObject);
+        void IDataDictionary.Disconnect(object key) => Disconnect((TKey)key);
+        void IDataDictionary.Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
+        void IDataDictionary.Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
+        #endregion
+
+        #region Common Dictionary implementations
+
+        public ICollection<TKey> Keys => _item.Value.Keys.AsList();
+
+        public ICollection<TDataObject> Values => _item.Value.Items.Select(dO => dO.DataObject).AsList();
+
+        public int Count => _item.Value.Count;
+
+        public bool IsReadOnly => false;
+
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TDataObject>.Keys => Keys;
+
+        IEnumerable<TDataObject> IReadOnlyDictionary<TKey, TDataObject>.Values => Values;
+
+        public IEnumerator<TDataObject> GetEnumerator() => _item.Value.Items.Select(dO => dO.DataObject).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public void Add(TKey key, TDataObject value)
+        {
+            if (ContainsKey(key)) throw new ArgumentException($"The key {key} is already in the dictionary");
+            _item.Value.AddOrUpdate((key, value));
+        }
+
+        public void Add(KeyValuePair<TKey, TDataObject> item) => Add(item.Key, item.Value);
+
+        public bool ContainsKey(TKey key) => _item.Value.Keys.Contains(key);
+
+        public bool Contains(KeyValuePair<TKey, TDataObject> item)
+            => _item.Value.Items.Any(dO => EqualityComparer<TKey>.Default.Equals(dO.Key, item.Key) && dO.DataObject == item.Value);
+
+        public bool Remove(TKey key)
+        {
+            var retVal = ContainsKey(key);
+            if (retVal) _item.Value.RemoveKey(key);
+            return retVal;
+        }
+
+        public bool TryGetValue(TKey key, out TDataObject value)
+        {
+            var kvp = _item.Value.KeyValues.FirstOrOptional(kvp => EqualityComparer<TKey>.Default.Equals(kvp.Key, key));
+            value = kvp.ValueOrDefault().Value.DataObject;
+            return kvp.HasValue;
+        }
+
+        public void Clear() => _item.Value.Clear();
+
+
+        public void CopyTo(KeyValuePair<TKey, TDataObject>[] array, int arrayIndex)
+             => _item.Value.Items.Select((dO, index) => (KvP: new KeyValuePair<TKey,TDataObject>(dO.Key, dO.DataObject), Index: index)).ForEach(item => array[arrayIndex + item.Index] = item.KvP);
+
+        public bool Remove(KeyValuePair<TKey, TDataObject> item)
+            => Remove(item.Key);
+
+        IEnumerator<KeyValuePair<TKey, TDataObject>> IEnumerable<KeyValuePair<TKey, TDataObject>>.GetEnumerator()
+            => _item.Value.Items.Select(dO => new KeyValuePair<TKey, TDataObject>(dO.Key, dO.DataObject)).GetEnumerator();
 
         public TDataObject this[TKey key]
         {
@@ -119,16 +184,6 @@ namespace Awesomni.Codes.FlowRx
             set => Connect(key, value);
         }
 
-        #region ungeneric interface
-        IDataObject IDataDictionary.Create(object key, Func<IDataObject> creator)
-            => Create(
-                (TKey)key,
-                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to dictionary type"));
-        IDataObject? IDataDictionary.Get(object key) => item.Value.Lookup((TKey)key).ValueOrDefault().DataObject;
-        void IDataDictionary.Connect(object key, IDataObject dataObject) => Connect((TKey)key, (TDataObject)dataObject);
-        void IDataDictionary.Disconnect(object key) => Disconnect((TKey)key);
-        void IDataDictionary.Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
-        void IDataDictionary.Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
         IDataObject IDataDictionary.this[object index] { get => this[(TKey) index]; set => this[(TKey)index] = (TDataObject) value; }
         #endregion
     }

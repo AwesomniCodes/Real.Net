@@ -11,7 +11,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDictionary : IDataObject, IEnumerable
+    public interface IDataDictionary : IDataObject, IEnumerable/*, ICollection, IDictionary*/
     {
         IDataObject Create(object key, Func<IDataObject> creator);
 
@@ -32,7 +32,8 @@ namespace Awesomni.Codes.FlowRx
         IDataObject this[object index] { get; set; }
     }
 
-    public interface IDataDictionary<TKey, TDataObject> : IDataDictionary, IEnumerable<TDataObject> where TDataObject : class, IDataObject
+    public interface IDataDictionary<TKey, TDataObject> : IDataDictionary, IEnumerable<TDataObject>, ICollection<KeyValuePair<TKey, TDataObject>>, IEnumerable<KeyValuePair<TKey, TDataObject>>, IEnumerable, IDictionary<TKey, TDataObject>,
+        IReadOnlyCollection<KeyValuePair<TKey, TDataObject>>, IReadOnlyDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
         QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject;
 
@@ -50,6 +51,6 @@ namespace Awesomni.Codes.FlowRx
 
         void Move(TKey sourceKey, TKey destinationKey);
 
-        TDataObject this[TKey index] { get; set; }
+        //TDataObject this[TKey index] { get; set; }
     }
 }
