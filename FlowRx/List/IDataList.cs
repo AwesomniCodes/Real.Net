@@ -11,7 +11,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataList : IDataObject, IEnumerable/*, ICollection, IList*/
+    public interface IDataList : IDataObject, IEnumerable, ICollection, IList
     {
         IDataObject Create(int key, Func<IDataObject> creator);
 
@@ -23,8 +23,7 @@ namespace Awesomni.Codes.FlowRx
         void Connect(int key, IDataObject dataObject);
 
         void Disconnect(int key);
-
-        IDataObject this[int index] { get; set; }
+        new IDataObject this[int index] { get; set; }
     }
 
     public interface IDataList<TDataObject> : IDataList, IEnumerable<TDataObject>, ICollection<TDataObject>, IList<TDataObject>, IReadOnlyCollection<TDataObject> where TDataObject : class, IDataObject

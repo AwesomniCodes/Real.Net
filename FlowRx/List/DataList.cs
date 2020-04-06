@@ -20,6 +20,7 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataList<TDataObject> : DataObject, IDataList<TDataObject> where TDataObject : class, IDataObject
     {
+        private object? _syncRoot;
         protected readonly BehaviorSubject<SourceList<TDataObject>> _item;
 
         internal DataList()
@@ -99,6 +100,65 @@ namespace Awesomni.Codes.FlowRx
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
+        #region Common List implementations
+        public TDataObject this[int key]
+        {
+            get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException($"No value under Key \"{key}\" available");
+            set => _item.Value.ReplaceAt(key, value);
+        }
+        IDataObject IDataList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
+        object IList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
+        public int Count => _item.Value.Count;
+        public bool IsReadOnly => false;
+        public bool IsFixedSize => false;
+        public bool IsSynchronized => false;
+        public object SyncRoot => _syncRoot ?? (_syncRoot = new object());
+        public int IndexOf(TDataObject item) => _item.Value.Items.IndexOf(item);
+        public int IndexOf(object value)
+            => value is TDataObject dataObjectValue ? IndexOf(dataObjectValue) : -1;
+        public void Insert(int index, TDataObject item) => _item.Value.Insert(index, item);
+        public void Insert(int index, object value)
+        {
+            if (value is TDataObject dataObjectValue)
+            {
+                Insert(index, dataObjectValue);
+            }
+        }
+        public void RemoveAt(int index) => _item.Value.RemoveAt(index);
+        public void Add(TDataObject item) => _item.Value.Add(item);
+        public int Add(object value)
+        {
+            if (value is TDataObject dataObjectValue)
+            {
+                _item.Value.Add(dataObjectValue);
+                return _item.Value.Count - 1;
+            }
+            return -1;
+        }
+        public void Clear() => _item.Value.Clear();
+        public bool Contains(TDataObject item) => _item.Value.Items.Contains(item);
+        public bool Contains(object value)
+            => value is TDataObject dataObjectValue ? Contains(dataObjectValue) : false;
+        public void CopyTo(TDataObject[] array, int arrayIndex) => _item.Value.Items.Select((dO, index) => (dO, index)).ForEach(item => array[arrayIndex + item.index] = item.dO);
+        public void CopyTo(Array array, int index)
+        {
+            if (!(array is TDataObject[] tdArray)) throw new ArgumentException("array");
+            CopyTo(tdArray, index);
+        }
+        public bool Remove(TDataObject item) => _item.Value.Remove(item);
+        public void Remove(object value)
+        {
+            if (value is TDataObject dataObjectValue)
+            {
+                Remove(dataObjectValue);
+            }
+        }
+        public IEnumerator<TDataObject> GetEnumerator() => _item.Value.Items.Select(dO => dO).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
+
+        #region interface
+
         public QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject
         {
             var data = creator();
@@ -107,34 +167,11 @@ namespace Awesomni.Codes.FlowRx
         }
 
         public QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject
-            => (QDataObject) _item.Value.Items.ElementAt(key);
+            => (QDataObject)_item.Value.Items.ElementAt(key);
 
         public void Connect(int key, TDataObject dataObject) => _item.Value.Insert(key, dataObject);
 
         public void Disconnect(int key) => _item.Value.RemoveAt(key);
-
-        #region Common List implementations
-        public TDataObject this[int key]
-        {
-            get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException($"No value under Key \"{key}\" available");
-            set => _item.Value.ReplaceAt(key, value);
-        }
-        IDataObject IDataList.this[int key] { get => this[key]; set => this[key] = (TDataObject)value; }
-        public int Count => _item.Value.Count;
-        public bool IsReadOnly => false;
-        public int IndexOf(TDataObject item) => _item.Value.Items.IndexOf(item);
-        public void Insert(int index, TDataObject item) => _item.Value.Insert(index, item);
-        public void RemoveAt(int index) => _item.Value.RemoveAt(index);
-        public void Add(TDataObject item) => _item.Value.Add(item);
-        public void Clear() => _item.Value.Clear();
-        public bool Contains(TDataObject item) => _item.Value.Items.Contains(item);
-        public void CopyTo(TDataObject[] array, int arrayIndex) => _item.Value.Items.Select((dO, index) => (dO, index)).ForEach(item => array[arrayIndex + item.index] = item.dO);
-        public bool Remove(TDataObject item) => _item.Value.Remove(item);
-        public IEnumerator<TDataObject> GetEnumerator() => _item.Value.Items.Select(dO => dO).GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        #endregion
-
-        #region ungeneric interface
         IDataObject IDataList.Create(int key, Func<IDataObject> creator)
             => Create(
                 key,
