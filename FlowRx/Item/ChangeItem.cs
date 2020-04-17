@@ -38,7 +38,7 @@ namespace Awesomni.Codes.FlowRx
         public static IChangeItem<TData> Create(ChangeType changeType, TData value = default)
             => new ChangeItem<TData>(changeType, value);
 
-        internal ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
+        protected ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
         public new TData Value => base.Value is TData tValue ? tValue : default!;
 

@@ -20,6 +20,8 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataDirectory : DataDictionary<string, IDataObject>, IDataDirectory
     {
+        public static new IDataDirectory Create() => new DataDirectory();
+        protected DataDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(FlowRx.Create.Change.Item<IDataDirectory>(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(

@@ -22,7 +22,9 @@ namespace Awesomni.Codes.FlowRx
     {
         protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> _item;
 
-        internal DataDictionary()
+        public static IDataDictionary<TKey, TDataObject> Create() => new DataDictionary<TKey, TDataObject>();
+
+        protected DataDictionary()
         {
             _item = new BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>>(new SourceCache<(TKey Key, TDataObject DataObject), TKey>(o => o.Key));
 

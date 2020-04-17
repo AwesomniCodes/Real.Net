@@ -59,12 +59,12 @@ namespace Awesomni.Codes.FlowRx
             => (IDataDictionary)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
 
         public IDataDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>() where TDataObject : class, IDataObject
-            => new DataDictionary<TKey, TDataObject>();
+            => DataDictionary<TKey, TDataObject>.Create();
 
-        public IDataDirectory Directory() => new DataDirectory();
+        public IDataDirectory Directory() => DataDirectory.Create();
 
         public IDataItem<TData> Item<TData>(TData initialValue = default)
-            => new DataItem<TData>(initialValue);
+            => DataItem<TData>.Create(initialValue);
 
         public IDataItem Item(Type type, object? initialValue = default)
             => (IDataItem)GetType()
@@ -76,10 +76,10 @@ namespace Awesomni.Codes.FlowRx
             => (IDataList)Activator.CreateInstance(typeof(DataList<>).MakeGenericType(dataObjectType), true);
 
         public IDataList<TDataObject> List<TDataObject>() where TDataObject : class, IDataObject
-            => new DataList<TDataObject>();
+            => DataList<TDataObject>.Create();
 
         public IDataObservable<TData> Observable<TData>(IObservable<TData> observable, TData initialValue = default)
-            => new DataObservable<TData>(observable, initialValue);
+            => DataObservable<TData>.Create(observable, initialValue);
 
         public IDataObject Observable(Type type)
             => (IDataObject)GetType()

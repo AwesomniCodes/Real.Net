@@ -24,7 +24,7 @@ namespace Awesomni.Codes.FlowRx
 
         public static IChangeList<TDataObject> Create(int key, IEnumerable<IChange<TDataObject>> changes)
             => new ChangeList<TDataObject>(key, changes);
-        internal ChangeList(int key, IEnumerable<IChange<TDataObject>> changes)
+        protected ChangeList(int key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
             Changes = changes;

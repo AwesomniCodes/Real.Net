@@ -23,7 +23,9 @@ namespace Awesomni.Codes.FlowRx
         private object? _syncRoot;
         protected readonly BehaviorSubject<SourceList<TDataObject>> _item;
 
-        internal DataList()
+        public static IDataList<TDataObject> Create() => new DataList<TDataObject>();
+
+        protected DataList()
         {
             _item = new BehaviorSubject<SourceList<TDataObject>>(new SourceList<TDataObject>());
 

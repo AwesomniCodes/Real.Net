@@ -26,7 +26,9 @@ namespace Awesomni.Codes.FlowRx
     {
         private readonly BehaviorSubject<TData> _subject;
         private bool _isDisposed;
-        internal DataItem(TData initialValue = default)
+
+        public static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+        protected DataItem(TData initialValue = default)
         {
             _subject = new BehaviorSubject<TData>(initialValue);
 
@@ -55,10 +57,10 @@ namespace Awesomni.Codes.FlowRx
                     }),
                     _subject.DistinctUntilChanged()
                     .Publish(pub =>
-                        pub.Take(1).Select(value => Create.Change.Item(ChangeType.Create, value).Yield())
+                        pub.Take(1).Select(value => ChangeItem<TData>.Create(ChangeType.Create, value).Yield())
                         .Merge(
-                            pub.Skip(1).Select(value => Create.Change.Item(ChangeType.Modify, value).Yield())))
-                    .Concat(Observable.Return(Create.Change.Item(ChangeType.Complete, _subject.Value).Yield())));
+                            pub.Skip(1).Select(value => ChangeItem<TData>.Create(ChangeType.Modify, value).Yield())))
+                    .Concat(Observable.Return(ChangeItem<TData>.Create(ChangeType.Complete, _subject.Value).Yield())));
         }
 
         TData IDataItem<TData>.Value => _subject.Value;

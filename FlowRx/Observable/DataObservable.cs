@@ -17,7 +17,9 @@ namespace Awesomni.Codes.FlowRx
     {
         private readonly IObservable<TData> _observable;
 
-        internal DataObservable(IObservable<TData> observable, TData initialValue = default)
+        public static IDataObservable<TData> Create(IObservable<TData> observable, TData initialValue = default)
+            => new DataObservable<TData>(observable, initialValue);
+        protected DataObservable(IObservable<TData> observable, TData initialValue = default)
         {
             _observable = observable;
             Value = initialValue;
@@ -29,7 +31,7 @@ namespace Awesomni.Codes.FlowRx
                         //Handle Errors
                         throw new InvalidOperationException("DataObservable cannot be updated");
                     }),
-                    Observable.Return(Create.Change.Item(ChangeType.Connect, initialValue).Yield())
+                    Observable.Return(ChangeItem<TData>.Create(ChangeType.Connect, initialValue).Yield())
                     .Concat(observable.DistinctUntilChanged().SelectMany(value =>
                     {
                         if (isFirst && EqualityComparer<TData>.Default.Equals(Value, value))
@@ -39,9 +41,9 @@ namespace Awesomni.Codes.FlowRx
 
                         isFirst = false;
 
-                        return Observable.Return(Create.Change.Item(ChangeType.Modify, value).Yield());
+                        return Observable.Return(ChangeItem<TData>.Create(ChangeType.Modify, value).Yield());
                     }))
-                    .Concat(Observable.Return(Create.Change.Item(ChangeType.Complete, Value).Yield()))
+                    .Concat(Observable.Return(ChangeItem<TData>.Create(ChangeType.Complete, Value).Yield()))
                     .Concat(Observable.Never<IEnumerable<IChangeItem<TData>>>())); //Avoid OnComplete
         }
 

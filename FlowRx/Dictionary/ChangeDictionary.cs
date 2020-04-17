@@ -25,7 +25,7 @@ namespace Awesomni.Codes.FlowRx
         public static IChangeDictionary<TKey, TDataObject> Create(TKey key, IEnumerable<IChange<TDataObject>> changes)
             => new ChangeDictionary<TKey, TDataObject>(key, changes);
 
-        internal ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
+        protected ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
             Changes = changes;
