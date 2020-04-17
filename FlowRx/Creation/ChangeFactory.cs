@@ -14,30 +14,18 @@ namespace Awesomni.Codes.FlowRx
 
     public class ChangeFactory : IChangeFactory
     {
-        //public IChangeItem Item(ChangeType changeType, object value)
-        //    => (IChangeItem)GetType()
-        //    .GetMethod(nameof(Item), 1, new Type[] { typeof(ChangeType), Type.MakeGenericMethodParameter(1) })
-        //    .MakeGenericMethod(value.GetType())
-        //    .Invoke(this, new object[] { changeType, value });
-
-        //public IChangeItem Item(ChangeType changeType, Type type)
-        //    => (IChangeItem)GetType()
-        //    .GetMethod(nameof(Item), 1, new Type[] { typeof(ChangeType), Type.MakeGenericMethodParameter(1) })
-        //    .MakeGenericMethod(type)
-        //    .Invoke(this, new object?[] { changeType, type.GetDefault() });
-
         public IChangeItem<TData> Item<TData>(ChangeType changeType, TData value = default)
-            => new ChangeItem<TData>(changeType, value);
+            => ChangeItem<TData>.Create(changeType, value);
 
         public IChangeDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>(TKey key, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
             => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
             (IChangeDictionary<TKey, TDataObject>)Directory(key as string ?? string.Empty, changes) :
-            new ChangeDictionary<TKey, TDataObject>(key, changes);
+            ChangeDictionary<TKey, TDataObject>.Create(key, changes);
 
         public IChangeDirectory Directory(string key, IEnumerable<IChange<IDataObject>> changes)
-            => new ChangeDirectory(key, changes);
+            => ChangeDirectory.Create(key, changes);
 
         public IChangeList<TDataObject> List<TDataObject>(int index, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
-            => new ChangeList<TDataObject>(index, changes);
+            => ChangeList<TDataObject>.Create(index, changes);
     }
 }

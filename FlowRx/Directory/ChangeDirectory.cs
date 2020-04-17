@@ -7,12 +7,15 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using System;
     using System.Collections.Generic;
 
     public interface IChangeDirectory : IChangeDictionary<string, IDataObject> { }
 
     public class ChangeDirectory : ChangeDictionary<string, IDataObject>, IChangeDirectory
     {
+        public static new IChangeDirectory Create(string key, IEnumerable<IChange<IDataObject>> changes)
+            => new ChangeDirectory(key, changes);
         internal ChangeDirectory(string key, IEnumerable<IChange<IDataObject>> changes) : base(key, changes) { }
     }
 }

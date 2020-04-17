@@ -22,13 +22,16 @@ namespace Awesomni.Codes.FlowRx
 
     public class ChangeDictionary<TKey, TDataObject> : IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
-        public TKey Key { get; }
+        public static IChangeDictionary<TKey, TDataObject> Create(TKey key, IEnumerable<IChange<TDataObject>> changes)
+            => new ChangeDictionary<TKey, TDataObject>(key, changes);
 
         internal ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
             Changes = changes;
         }
+
+        public TKey Key { get; }
 
         public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
 

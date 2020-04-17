@@ -6,6 +6,7 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using System;
     using System.Collections.Generic;
 
     public interface IChangeItem : IChange<IDataItem>
@@ -34,8 +35,12 @@ namespace Awesomni.Codes.FlowRx
 
     public class ChangeItem<TData> : ChangeItem, IChangeItem<TData>
     {
+        public static IChangeItem<TData> Create(ChangeType changeType, TData value = default)
+            => new ChangeItem<TData>(changeType, value);
+
         internal ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
 
         public new TData Value => base.Value is TData tValue ? tValue : default!;
+
     }
 }
