@@ -66,8 +66,8 @@ namespace Awesomni.Codes.FlowRx
         public IDataItem<TData> Item<TData>(TData initialValue = default)
             => DataItem<TData>.Create(initialValue);
 
-        public IDataItem Item(Type type, object? initialValue = default)
-            => (IDataItem)GetType()
+        public IDataItem<object?> Item(Type type, object? initialValue = default)
+            => (IDataItem<object?>)GetType()
             .GetMethod(nameof(Item), 1, new Type[] { Type.MakeGenericMethodParameter(0) })
             .MakeGenericMethod(type)
             .Invoke(this, new object?[] { initialValue });

@@ -13,7 +13,7 @@ namespace Awesomni.Codes.FlowRx
         IDataDictionary Dictionary(Type keyType, Type dataObjectType);
         IDataDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>() where TDataObject : class, IDataObject;
         IDataDirectory Directory();
-        IDataItem Item(Type type, object? initialValue = null);
+        IDataItem<object?> Item(Type type, object? initialValue = null);
         IDataItem<TData> Item<TData>(TData initialValue = default);
         IDataList List(Type dataObjectType);
         IDataList<TDataObject> List<TDataObject>() where TDataObject : class, IDataObject;

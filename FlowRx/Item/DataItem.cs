@@ -15,11 +15,19 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class DataItem : DataObject, IDataItem
+    public abstract class DataItem : DataObject, IDataItem<object?>
     {
         public abstract object? Value { get; }
 
         public abstract void Dispose();
+
+        public abstract void OnCompleted();
+
+        public abstract void OnError(Exception error);
+
+        public abstract void OnNext(object? value);
+
+        public abstract IDisposable Subscribe(IObserver<object?> observer);
     }
 
     public class DataItem<TData> : DataItem, IDataItem<TData>
@@ -69,9 +77,9 @@ namespace Awesomni.Codes.FlowRx
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
-        public void OnCompleted() { _subject.OnCompleted(); }
+        public override void OnCompleted() { _subject.OnCompleted(); }
 
-        public void OnError(Exception error)
+        public override void OnError(Exception error)
         {
             if (_isDisposed)
             {
@@ -88,7 +96,7 @@ namespace Awesomni.Codes.FlowRx
             _subject.OnNext(value);
         }
 
-        public IDisposable Subscribe(IObserver<TData> observer) => _subject.Subscribe();
+        public IDisposable Subscribe(IObserver<TData> observer) => _subject.Subscribe(observer);
 
         public override void Dispose()
         {
@@ -96,5 +104,8 @@ namespace Awesomni.Codes.FlowRx
             _isDisposed = true;
         }
 
+        public override void OnNext(object? value) => OnNext((TData) value!);
+
+        public override IDisposable Subscribe(IObserver<object?> observer) => _subject.Select(i => (object?)i).Subscribe(observer);
     }
 }

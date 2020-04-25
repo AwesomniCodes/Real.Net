@@ -15,17 +15,16 @@ namespace Awesomni.Codes.FlowRx.Utility
             return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
-        public static Type? GetTypeIfImplemented(this Type type, Type interfaceType)
+        public static IEnumerable<Type> GetTypesIfImplemented(this Type type, Type interfaceType)
         {
             if (interfaceType.IsGenericType && !interfaceType.IsConstructedGenericType)
             {
                 return type.GetInterfaces()
                     .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == interfaceType)
-                    .OrderByDescending(x => x.GetGenericArguments().Single().IsGenericType)
-                    .FirstOrDefault();
+                    .OrderByDescending(x => x.GetGenericArguments().Single().IsGenericType);
             }
 
-            return type.GetInterfaces().FirstOrDefault(x => x == interfaceType);
+            return type.GetInterfaces().Where(x => x == interfaceType);
         }
 
         public static T NullThrow<T>(this T? value, string paramName = "") where T : class

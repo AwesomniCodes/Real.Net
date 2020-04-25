@@ -39,7 +39,7 @@ namespace Awesomni.Codes.FlowRx
                 .SelectMany(childChange =>
                                 childChange
                                 .Changes
-                                .OfType<IChangeItem>()
+                                .OfType<IChangeItem<object?>>()
                                 .Where(ccI => ccI.ChangeType == ChangeType.Complete)
                                 .Select(_ => childChange.Key));
 
@@ -69,9 +69,9 @@ namespace Awesomni.Codes.FlowRx
                     {
                         childChange.Changes.ForEach(innerChange =>
                         {
-                            if (innerChange is IChangeItem innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
+                            if (innerChange is IChangeItem<object?> innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                             {
-                                var changeType = innerChange.GetType().GetTypeIfImplemented(typeof(IChange<>))?.GetGenericArguments().Single();
+                                var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single();
                                 if (changeType != null)
                                 {
                                     var dataObject = (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value);

@@ -9,18 +9,13 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
 
-    public interface IChangeItem : IChange<IDataItem>
+    public interface IChangeItem<TData> : IChange<IDataItem<TData>>
     {
         ChangeType ChangeType { get; }
-        object? Value { get; }
+        TData Value { get; }
     }
 
-    public interface IChangeItem<TData> : IChange<IDataItem<TData>>, IChangeItem
-    {
-        new TData Value { get; }
-    }
-
-    public abstract class ChangeItem : IChangeItem
+    public abstract class ChangeItem : IChangeItem<object?>
     {
         protected ChangeItem(ChangeType changeType, object? value = null)
         {
