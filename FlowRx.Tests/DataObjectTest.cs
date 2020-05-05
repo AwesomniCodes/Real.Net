@@ -16,19 +16,19 @@ namespace Awesomni.Codes.FlowRx.Tests
     {
         public static IDataDirectory GetCommonDirectory()
         {
-            var root = Create.Data.Directory();
-            var subFolder = root.Create("TestDirectory", Create.Data.Directory);
-            var testString = subFolder.Create("TestString", () => Create.Data.Item<string>("TestString"));
-            var testInt = subFolder.Create("TestInt", () => Create.Data.Item<int>(23));
-            var testDouble = subFolder.Create("TestDouble", () => Create.Data.Item<double>(23.0));
-            var testBool = subFolder.Create("TestBool", () => Create.Data.Item<bool>(true));
+            var root = DataDirectory.Create();
+            var subFolder = root.Create("TestDirectory", DataDirectory.Create);
+            var testString = subFolder.Create("TestString", () => DataItem<string>.Create("TestString"));
+            var testInt = subFolder.Create("TestInt", () => DataItem<int>.Create(23));
+            var testDouble = subFolder.Create("TestDouble", () => DataItem<double>.Create(23.0));
+            var testBool = subFolder.Create("TestBool", () => DataItem<bool>.Create(true));
             return root;
         }
 
 
         public static IDataDirectory GetMirroredDirectory(IDataDirectory directory)
         {
-            var mirror = Create.Data.Directory();
+            var mirror = DataDirectory.Create();
 
             directory.Changes.Subscribe(mirror.Changes);
 

@@ -23,11 +23,11 @@ namespace Awesomni.Codes.FlowRx
         public static new IDataDirectory Create() => new DataDirectory();
         protected DataDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(FlowRx.Create.Change.Item<IDataDirectory>(ChangeType.Create).Yield())
+            => Observable.Return(ChangeItem<IDataDirectory>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
                     _item.Switch()
                     .MergeMany(dO =>
                         dO.DataObject.Changes
-                        .Select(changes => FlowRx.Create.Change.Directory(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));
+                        .Select(changes => ChangeDirectory.Create(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));
     }
 }

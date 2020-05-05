@@ -12,7 +12,5 @@ namespace Awesomni.Codes.FlowRx
     {
         IChangeDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>(TKey key, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject;
         IChangeDirectory Directory(string key, IEnumerable<IChange<IDataObject>> changes);
-        IChangeItem<TData> Item<TData>(ChangeType changeType, TData value = default);
-        IChangeList<TDataObject> List<TDataObject>(int index, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject;
     }
 }

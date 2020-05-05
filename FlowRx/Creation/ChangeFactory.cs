@@ -14,9 +14,6 @@ namespace Awesomni.Codes.FlowRx
 
     public class ChangeFactory : IChangeFactory
     {
-        public IChangeItem<TData> Item<TData>(ChangeType changeType, TData value = default)
-            => ChangeItem<TData>.Create(changeType, value);
-
         public IChangeDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>(TKey key, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
             => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
             (IChangeDictionary<TKey, TDataObject>)Directory(key as string ?? string.Empty, changes) :
@@ -25,7 +22,5 @@ namespace Awesomni.Codes.FlowRx
         public IChangeDirectory Directory(string key, IEnumerable<IChange<IDataObject>> changes)
             => ChangeDirectory.Create(key, changes);
 
-        public IChangeList<TDataObject> List<TDataObject>(int index, IEnumerable<IChange<TDataObject>> changes) where TDataObject : class, IDataObject
-            => ChangeList<TDataObject>.Create(index, changes);
     }
 }

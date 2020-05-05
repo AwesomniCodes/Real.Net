@@ -15,7 +15,5 @@ namespace Awesomni.Codes.FlowRx
     public static class Create
     {
         public static IChangeFactory Change { get; } = new ChangeFactory();
-        public static IDataFactory Data { get; } = new DataFactory();
-
     }
 }

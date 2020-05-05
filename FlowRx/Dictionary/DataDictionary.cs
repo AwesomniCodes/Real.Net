@@ -72,7 +72,7 @@ namespace Awesomni.Codes.FlowRx
                             {
                                 var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single()!;
 
-                                Create(childChange.Key, () => (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value));
+                                Create(childChange.Key, () => (TDataObject)DataObject.Create(changeType, innerValueChange.Value));
                             }
                             else
                             {
@@ -84,7 +84,7 @@ namespace Awesomni.Codes.FlowRx
             });
 
         protected virtual IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(FlowRx.Create.Change.Item<IDataDictionary<TKey, TDataObject>>(ChangeType.Create).Yield())
+            => Observable.Return(ChangeItem<IDataDictionary<TKey, TDataObject>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
                     _item.Switch()
                     .MergeMany(dO =>

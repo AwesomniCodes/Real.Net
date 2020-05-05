@@ -74,7 +74,7 @@ namespace Awesomni.Codes.FlowRx
                                 var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single();
                                 if (changeType != null)
                                 {
-                                    var dataObject = (TDataObject)FlowRx.Create.Data.Object(changeType, innerValueChange.Value);
+                                    var dataObject = (TDataObject)DataObject.Create(changeType, innerValueChange.Value);
                                     Connect(childChange.Key, dataObject);
                                 }
                                 else
@@ -92,13 +92,13 @@ namespace Awesomni.Codes.FlowRx
             });
 
         private IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(FlowRx.Create.Change.Item<IDataList<TDataObject>>(ChangeType.Create).Yield())
+            => Observable.Return(ChangeItem<IDataList<TDataObject>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
                     _item.Switch()
                     .Transform((dO, index) => (DataObject: dO, Index: index))
                     .MergeMany(dOWithIndex => 
                         dOWithIndex.DataObject.Changes
-                        .Select(changes => FlowRx.Create.Change.List(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
+                        .Select(changes => ChangeList<TDataObject>.Create(dOWithIndex.Index, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 

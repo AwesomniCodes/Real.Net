@@ -28,6 +28,9 @@ namespace Awesomni.Codes.FlowRx
         public abstract void OnNext(object? value);
 
         public abstract IDisposable Subscribe(IObserver<object?> observer);
+
+        //public static IDataItem<object?> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+
     }
 
     public class DataItem<TData> : DataItem, IDataItem<TData>
