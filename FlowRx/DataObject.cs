@@ -61,8 +61,8 @@ namespace Awesomni.Codes.FlowRx
             => _typeCreations.Select(x => x(objectType, constructorArgs)).FirstOrDefault(o => o != null)
                 ?? throw new ArgumentException("The type is unknown", nameof(objectType));
 
-        private static IDataDictionary Dictionary(Type keyType, Type dataObjectType)
-            => (IDataDictionary)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
+        private static IDataDictionary<object?, IDataObject> Dictionary(Type keyType, Type dataObjectType)
+            => (IDataDictionary<object?, IDataObject>)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
 
         private static IDataDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>() where TDataObject : class, IDataObject
             => DataDictionary<TKey, TDataObject>.Create();

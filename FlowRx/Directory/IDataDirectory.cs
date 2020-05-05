@@ -13,6 +13,18 @@ namespace Awesomni.Codes.FlowRx
 
     public interface IDataDirectory : IDataDictionary<string, IDataObject>
     {
-        
+        QDataObject GetOrAdd<QDataObject>(string key, Func<QDataObject> creator) where QDataObject : class, IDataObject
+        {
+            QDataObject CreateAndAdd()
+            {
+                var obj = creator();
+                Add(key, obj);
+                return obj;
+            }
+            return Get<QDataObject>(key) ?? CreateAndAdd();
+        }
+
+        QDataObject? Get<QDataObject>(string key) where QDataObject : class, IDataObject
+            => Get(key) as QDataObject;
     }
 }

@@ -40,9 +40,9 @@ namespace Awesomni.Codes.FlowRx.Utility
                 yield return (keyChain, valueChange.ChangeType, valueChange.Value);
             }
 
-            if (change is IChangeDictionary childChange)
+            if (change is IChangeDictionary<object?, IDataObject> childChange)
             {
-                keyChain = keyChain.Concat(childChange.Key.Yield()).ToList();
+                keyChain = keyChain.Concat(childChange.Key!.Yield()).ToList();
 
                 foreach (var flattenedChildItem in childChange.Changes.Flattened(keyChain))
                 {

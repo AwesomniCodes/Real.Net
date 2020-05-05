@@ -17,11 +17,11 @@ namespace Awesomni.Codes.FlowRx.Tests
         public static IDataDirectory GetCommonDirectory()
         {
             var root = DataDirectory.Create();
-            var subFolder = root.Create("TestDirectory", DataDirectory.Create);
-            var testString = subFolder.Create("TestString", () => DataItem<string>.Create("TestString"));
-            var testInt = subFolder.Create("TestInt", () => DataItem<int>.Create(23));
-            var testDouble = subFolder.Create("TestDouble", () => DataItem<double>.Create(23.0));
-            var testBool = subFolder.Create("TestBool", () => DataItem<bool>.Create(true));
+            var subFolder = root.GetOrAdd("TestDirectory", DataDirectory.Create);
+            var testString = subFolder.GetOrAdd("TestString", () => DataItem<string>.Create("TestString"));
+            var testInt = subFolder.GetOrAdd("TestInt", () => DataItem<int>.Create(23));
+            var testDouble = subFolder.GetOrAdd("TestDouble", () => DataItem<double>.Create(23.0));
+            var testBool = subFolder.GetOrAdd("TestBool", () => DataItem<bool>.Create(true));
             return root;
         }
 

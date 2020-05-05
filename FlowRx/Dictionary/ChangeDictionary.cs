@@ -8,20 +8,23 @@ namespace Awesomni.Codes.FlowRx
 {
     using System.Collections.Generic;
 
-    public interface IChangeDictionary : IChange<IDataDictionary>
+    public interface IChangeDictionary<TKey, TDataObject> : IChange<IDataDictionary<TKey, TDataObject>> where TDataObject : class, IDataObject
     {
-        object Key { get; }
-        IEnumerable<IChange> Changes { get; }
+        TKey Key { get; }
+        IEnumerable<IChange<TDataObject>> Changes { get; }
     }
 
-    public interface IChangeDictionary<TKey, TDataObject> : IChangeDictionary, IChange<IDataDictionary<TKey, TDataObject>> where TDataObject : class, IDataObject
+    public abstract class ChangeDictionary : IChangeDictionary<object?, IDataObject>
     {
-        new TKey Key { get; }
-        new IEnumerable<IChange<TDataObject>> Changes { get; }
+        public abstract object? Key { get; }
+        public abstract IEnumerable<IChange<IDataObject>> Changes { get; }
     }
 
-    public class ChangeDictionary<TKey, TDataObject> : IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
+    public class ChangeDictionary<TKey, TDataObject> : ChangeDictionary, IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
+        private readonly TKey _key;
+        private readonly IEnumerable<IChange<TDataObject>> _changes;
+
         public static IChangeDictionary<TKey, TDataObject> Create(TKey key, IEnumerable<IChange<TDataObject>> changes)
              => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
             (IChangeDictionary<TKey, TDataObject>) ChangeDirectory.Create(key as string ?? string.Empty, changes) :
@@ -29,16 +32,13 @@ namespace Awesomni.Codes.FlowRx
 
         protected ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
         {
-            Key = key;
-            Changes = changes;
+            _key = key;
+            _changes = changes;
         }
 
-        public TKey Key { get; }
-
-        public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
-
-        object IChangeDictionary.Key => Key!;
-
-        IEnumerable<IChange> IChangeDictionary.Changes => Changes;
+        TKey IChangeDictionary<TKey, TDataObject>.Key => _key;
+        IEnumerable<IChange<TDataObject>> IChangeDictionary<TKey, TDataObject>.Changes => _changes;
+        public override object? Key => _key;
+        public override IEnumerable<IChange<IDataObject>> Changes => _changes;
     }
 }
