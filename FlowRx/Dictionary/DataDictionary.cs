@@ -89,7 +89,7 @@ namespace Awesomni.Codes.FlowRx
                     _item.Switch()
                     .MergeMany(dO =>
                         dO.DataObject.Changes
-                        .Select(changes => FlowRx.Create.Change.Dictionary(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield())));
+                        .Select(changes => ChangeDictionary<TKey, TDataObject>.Create(dO.Key, changes.Cast<IChange<TDataObject>>()).Yield())));
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 

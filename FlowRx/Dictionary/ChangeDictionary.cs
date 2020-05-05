@@ -23,7 +23,9 @@ namespace Awesomni.Codes.FlowRx
     public class ChangeDictionary<TKey, TDataObject> : IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
         public static IChangeDictionary<TKey, TDataObject> Create(TKey key, IEnumerable<IChange<TDataObject>> changes)
-            => new ChangeDictionary<TKey, TDataObject>(key, changes);
+             => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
+            (IChangeDictionary<TKey, TDataObject>) ChangeDirectory.Create(key as string ?? string.Empty, changes) :
+            new ChangeDictionary<TKey, TDataObject>(key, changes);
 
         protected ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
         {
