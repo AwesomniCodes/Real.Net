@@ -75,7 +75,7 @@ namespace Awesomni.Codes.FlowRx
                                 if (changeType != null)
                                 {
                                     var dataObject = (TDataObject)DataObject.Create(changeType, innerValueChange.Value);
-                                    Connect(childChange.Key, dataObject);
+                                    Add(childChange.Key, dataObject);
                                 }
                                 else
                                 {
@@ -148,38 +148,21 @@ namespace Awesomni.Codes.FlowRx
             CopyTo(tdArray, index);
         }
         public bool Remove(TDataObject item) => _item.Value.Remove(item);
-        public void Remove(object value)
-        {
-            if (value is TDataObject dataObjectValue)
-            {
-                Remove(dataObjectValue);
-            }
-        }
+        public bool Remove(object value) => value is TDataObject dataObjectValue ? Remove(dataObjectValue) : false;
+        void IList.Remove(object value) => Remove(value);
         public IEnumerator<TDataObject> GetEnumerator() => _item.Value.Items.Select(dO => dO).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion
 
         #region interface
-
-        public QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject
-        {
-            var data = creator();
-            Connect(key, data);
-            return data;
-        }
-
         public QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject
             => (QDataObject)_item.Value.Items.ElementAt(key);
 
-        public void Connect(int key, TDataObject dataObject) => _item.Value.Insert(key, dataObject);
+        public void Add(int key, TDataObject dataObject) => _item.Value.Insert(key, dataObject);
 
-        public void Disconnect(int key) => _item.Value.RemoveAt(key);
-        IDataObject IDataList.Create(int key, Func<IDataObject> creator)
-            => Create(
-                key,
-                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to list type"));
+        public void Remove(int key) => _item.Value.RemoveAt(key);
         IDataObject? IDataList.Get(int key) => Get<TDataObject>(key);
-        void IDataList.Connect(int key, IDataObject dataObject) => Connect(key, (TDataObject)dataObject);
+        void IDataList.Add(int key, IDataObject dataObject) => Add(key, (TDataObject)dataObject);
         #endregion
     }
 }

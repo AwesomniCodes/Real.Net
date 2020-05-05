@@ -13,29 +13,42 @@ namespace Awesomni.Codes.FlowRx
 
     public interface IDataList : IDataObject, IEnumerable, ICollection, IList
     {
-        IDataObject Create(int key, Func<IDataObject> creator);
-
-        IDataObject GetOrCreate(int key, Func<IDataObject> creator)
-            => Get(key) ?? Create(key, creator);
+        IDataObject GetOrConnect(int key, Func<IDataObject> creator)
+        {
+            IDataObject CreateAndAdd()
+            {
+                var obj = creator();
+                Add(key, obj);
+                return obj;
+            }
+            return Get(key) ?? CreateAndAdd();
+        }
 
         IDataObject? Get(int key);
 
-        void Connect(int key, IDataObject dataObject);
+        void Add(int key, IDataObject dataObject);
 
-        void Disconnect(int key);
+        void Remove(int key);
+
         new IDataObject this[int index] { get; set; }
     }
 
     public interface IDataList<TDataObject> : IDataList, IEnumerable<TDataObject>, ICollection<TDataObject>, IList<TDataObject>, IReadOnlyCollection<TDataObject> where TDataObject : class, IDataObject
     {
-        QDataObject Create<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : TDataObject;
-
-        QDataObject GetOrCreate<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : class, TDataObject
-            => Get<QDataObject>(key) ?? Create(key, creator);
+        QDataObject GetOrAdd<QDataObject>(int key, Func<QDataObject> creator) where QDataObject : class, TDataObject
+        {
+            QDataObject CreateAndAdd()
+            {
+                var obj = creator();
+                Add(key, obj);
+                return obj;
+            }
+            return Get<QDataObject>(key) ?? CreateAndAdd();
+        }
 
         QDataObject? Get<QDataObject>(int key) where QDataObject : class, TDataObject;
 
-        void Connect(int key, TDataObject dataObject);
+        void Add(int key, TDataObject dataObject);
 
         new TDataObject this[int index] { get; set; }
     }

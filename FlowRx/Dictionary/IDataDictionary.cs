@@ -13,17 +13,23 @@ namespace Awesomni.Codes.FlowRx
 
     public interface IDataDictionary : IDataObject, IEnumerable/*, ICollection, IDictionary*/
     {
-        IDataObject Create(object key, Func<IDataObject> creator);
-
-        IDataObject GetOrCreate(object key, Func<IDataObject> creator)
-            => Get(key) ?? Create(key, creator);
+        IDataObject GetOrAdd(object key, Func<IDataObject> creator)
+        {
+            IDataObject CreateAndAdd()
+            {
+                var obj = creator();
+                Add(key, obj);
+                return obj;
+            }
+            return Get(key) ?? CreateAndAdd();
+        }
 
         IDataObject? Get(object key);
 
 
-        void Connect(object key, IDataObject dataObject);
+        void Add(object key, IDataObject dataObject);
 
-        void Disconnect(object key);
+        bool Remove(object key);
 
         void Copy(object sourceKey, object destinationKey);
 
@@ -35,17 +41,18 @@ namespace Awesomni.Codes.FlowRx
     public interface IDataDictionary<TKey, TDataObject> : IDataDictionary, IEnumerable<TDataObject>, ICollection<KeyValuePair<TKey, TDataObject>>, IEnumerable<KeyValuePair<TKey, TDataObject>>, IEnumerable, IDictionary<TKey, TDataObject>,
         IReadOnlyCollection<KeyValuePair<TKey, TDataObject>>, IReadOnlyDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
-        QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject;
-
-        QDataObject GetOrCreate<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : class, TDataObject
-            => Get<QDataObject>(key) ?? Create(key, creator);
+        QDataObject GetOrAdd<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : class, TDataObject
+        {
+            QDataObject CreateAndAdd()
+            {
+                var obj = creator();
+                Add(key, obj);
+                return obj;
+            }
+            return Get<QDataObject>(key) ?? CreateAndAdd();
+        } 
 
         QDataObject? Get<QDataObject>(TKey key) where QDataObject : class, TDataObject;
-
-
-        void Connect(TKey key, TDataObject dataObject);
-
-        void Disconnect(TKey key);
 
         void Copy(TKey sourceKey, TKey destinationKey);
 

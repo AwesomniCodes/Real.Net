@@ -72,7 +72,7 @@ namespace Awesomni.Codes.FlowRx
                             {
                                 var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single()!;
 
-                                Create(childChange.Key, () => (TDataObject)DataObject.Create(changeType, innerValueChange.Value));
+                                Add(childChange.Key, (TDataObject)DataObject.Create(changeType, innerValueChange.Value));
                             }
                             else
                             {
@@ -93,32 +93,17 @@ namespace Awesomni.Codes.FlowRx
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
-        public QDataObject Create<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : TDataObject
-        {
-            var data = creator();
-            Connect(key, data);
-            return data;
-        }
-        
         public QDataObject? Get<QDataObject>(TKey key) where QDataObject : class, TDataObject
             => _item.Value.Lookup(key).ValueOrDefault().DataObject as QDataObject;
-
-        public void Connect(TKey key, TDataObject dataObject) => _item.Value.AddOrUpdate((key, dataObject));
-
-        public void Disconnect(TKey key) => _item.Value.Remove(key);
 
         public void Copy(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
         public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
 
         #region ungeneric interface
-        IDataObject IDataDictionary.Create(object key, Func<IDataObject> creator)
-            => Create(
-                (TKey)key,
-                () => creator() is TDataObject tData ? tData : throw new ArgumentException("Type of created object does not fit to dictionary type"));
         IDataObject? IDataDictionary.Get(object key) => _item.Value.Lookup((TKey)key).ValueOrDefault().DataObject;
-        void IDataDictionary.Connect(object key, IDataObject dataObject) => Connect((TKey)key, (TDataObject)dataObject);
-        void IDataDictionary.Disconnect(object key) => Disconnect((TKey)key);
+        void IDataDictionary.Add(object key, IDataObject dataObject) => Add((TKey)key, (TDataObject)dataObject);
+        bool IDataDictionary.Remove(object key) => Remove((TKey)key);
         void IDataDictionary.Copy(object sourceKey, object destinationKey) => Copy((TKey)sourceKey, (TKey)destinationKey);
         void IDataDictionary.Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
         #endregion
@@ -183,7 +168,7 @@ namespace Awesomni.Codes.FlowRx
         public TDataObject this[TKey key]
         {
             get => Get<TDataObject>(key) ?? throw new ArgumentOutOfRangeException("No value under key available");
-            set => Connect(key, value);
+            set => Add(key, value);
         }
 
         IDataObject IDataDictionary.this[object index] { get => this[(TKey) index]; set => this[(TKey)index] = (TDataObject) value; }
