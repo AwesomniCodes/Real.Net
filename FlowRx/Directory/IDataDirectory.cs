@@ -11,9 +11,9 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDirectory : IDataDictionary<string, IDataObject>
+    public interface IDataDirectory<TKey> : IDataDictionary<TKey, IDataObject>
     {
-        QDataObject GetOrAdd<QDataObject>(string key, Func<QDataObject> creator) where QDataObject : class, IDataObject
+        QDataObject GetOrAdd<QDataObject>(TKey key, Func<QDataObject> creator) where QDataObject : class, IDataObject
         {
             QDataObject CreateAndAdd()
             {
@@ -24,7 +24,7 @@ namespace Awesomni.Codes.FlowRx
             return Get<QDataObject>(key) ?? CreateAndAdd();
         }
 
-        QDataObject? Get<QDataObject>(string key) where QDataObject : class, IDataObject
+        QDataObject? Get<QDataObject>(TKey key) where QDataObject : class, IDataObject
             => Get(key) as QDataObject;
     }
 }

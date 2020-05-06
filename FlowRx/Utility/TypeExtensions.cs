@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -32,5 +33,15 @@ namespace Awesomni.Codes.FlowRx.Utility
 
         public static T NullSubstitute<T>(this T? value, T substitute) where T : class
             => value ?? substitute;
+
+        public static T Convert<T>(this string input)
+        {
+            var converter = TypeDescriptor.GetConverter(typeof(T));
+            if (converter != null)
+            {
+                return (T)converter.ConvertFromString(input);
+            }
+            throw new NotSupportedException();
+        }
     }
 }

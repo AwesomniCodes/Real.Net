@@ -14,10 +14,10 @@ namespace Awesomni.Codes.FlowRx.Tests
 {
     public class DataObjectTest
     {
-        public static IDataDirectory GetCommonDirectory()
+        public static IDataDirectory<string> GetCommonDirectory()
         {
-            var root = DataDirectory.Create();
-            var subFolder = root.GetOrAdd("TestDirectory", DataDirectory.Create);
+            var root = DataDirectory<string>.Create();
+            var subFolder = root.GetOrAdd("TestDirectory", DataDirectory<string>.Create);
             var testString = subFolder.GetOrAdd("TestString", () => DataItem<string>.Create("TestString"));
             var testInt = subFolder.GetOrAdd("TestInt", () => DataItem<int>.Create(23));
             var testDouble = subFolder.GetOrAdd("TestDouble", () => DataItem<double>.Create(23.0));
@@ -26,9 +26,9 @@ namespace Awesomni.Codes.FlowRx.Tests
         }
 
 
-        public static IDataDirectory GetMirroredDirectory(IDataDirectory directory)
+        public static IDataDirectory<string> GetMirroredDirectory(IDataDirectory<string> directory)
         {
-            var mirror = DataDirectory.Create();
+            var mirror = DataDirectory<string>.Create();
 
             directory.Changes.Subscribe(mirror.Changes);
 
@@ -36,10 +36,10 @@ namespace Awesomni.Codes.FlowRx.Tests
         }
 
 
-        public static IDataDirectory GetCommonDirectoryWithCommonModification()
+        public static IDataDirectory<string> GetCommonDirectoryWithCommonModification()
         {
             var root = GetCommonDirectory();
-            var subFolder = root.Get<IDataDirectory>("TestDirectory").NullThrow();
+            var subFolder = root.Get<IDataDirectory<string>>("TestDirectory").NullThrow();
             var testString = subFolder.Get<IDataItem<string>>("TestString").NullThrow();
             var testInt = subFolder.Get<IDataItem<int>>("TestInt").NullThrow();
             var testDouble = subFolder.Get<IDataItem<double>>("TestDouble").NullThrow();
@@ -69,7 +69,7 @@ namespace Awesomni.Codes.FlowRx.Tests
 
         [Theory]
         [MemberData(nameof(GetCommonTestDirectoriesObjects))]
-        public void Mirroring_A_Directory_Is_Working_As_Expected(IDataDirectory root)
+        public void Mirroring_A_Directory_Is_Working_As_Expected(IDataDirectory<string> root)
         {
             var mirror = GetMirroredDirectory(root);
             var mirrorSnapshot = mirror.Changes
@@ -91,7 +91,7 @@ namespace Awesomni.Codes.FlowRx.Tests
 
         [Theory]
         [MemberData(nameof(GetCommonTestDirectoriesObjects))]
-        public void When_Subscribing_Multiple_Times_The_Same_Definition_Is_Returned(IDataDirectory root)
+        public void When_Subscribing_Multiple_Times_The_Same_Definition_Is_Returned(IDataDirectory<string> root)
         {
             var snapshot1 = root.Changes
                 .Snapshot()

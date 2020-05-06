@@ -25,7 +25,8 @@ namespace Awesomni.Codes.FlowRx
 
         static DataObject()
         {
-            AddCreation((type, _) => typeof(IDataDirectory).IsAssignableFrom(type) ? Directory() : null);
+            AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
+                => typeof(IDataDirectory<>).IsAssignableFrom(genericDefinition) ? Directory(genericArguments.Single()) : null);
 
             AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
                 => typeof(IDataList<>).IsAssignableFrom(genericDefinition) ? List(genericArguments.Single()) : null);
@@ -41,7 +42,6 @@ namespace Awesomni.Codes.FlowRx
 
             AddGenericCreation((concreteType, genericDefinition, genericArguments, constructionArguments)
                            => typeof(IDataItem<>).IsAssignableFrom(genericDefinition) ? Item(genericArguments.Single(), constructionArguments.FirstOrDefault()) : null);
-
         }
 
         public static void AddGenericCreation(ObjectGenericCreation<IDataObject> creation)
@@ -61,13 +61,19 @@ namespace Awesomni.Codes.FlowRx
             => _typeCreations.Select(x => x(objectType, constructorArgs)).FirstOrDefault(o => o != null)
                 ?? throw new ArgumentException("The type is unknown", nameof(objectType));
 
-        private static IDataDictionary<object?, IDataObject> Dictionary(Type keyType, Type dataObjectType)
-            => (IDataDictionary<object?, IDataObject>)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
+        private static IDataDictionary<object, IDataObject> Dictionary(Type keyType, Type dataObjectType)
+            => (IDataDictionary<object, IDataObject>)Activator.CreateInstance(typeof(DataDictionary<,>).MakeGenericType(keyType, dataObjectType), true);
 
         private static IDataDictionary<TKey, TDataObject> Dictionary<TKey, TDataObject>() where TDataObject : class, IDataObject
             => DataDictionary<TKey, TDataObject>.Create();
 
-        private static IDataDirectory Directory() => DataDirectory.Create();
+        private static IDataDirectory<object> Directory(Type type)
+            => (IDataDirectory<object>)typeof(DataObject)
+            .GetMethod(nameof(Directory), 1, BindingFlags.Static | BindingFlags.NonPublic, Type.DefaultBinder, new Type[] {  }, new ParameterModifier[] { })
+            .MakeGenericMethod(type)
+            .Invoke(null, new object[] {  });
+
+        private static IDataDirectory<TKey> Directory<TKey>() => DataDirectory<TKey>.Create();
 
         private static IDataItem<TData> Item<TData>(TData initialValue = default)
             => DataItem<TData>.Create(initialValue);

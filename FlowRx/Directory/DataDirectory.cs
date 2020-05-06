@@ -18,16 +18,20 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public class DataDirectory : DataDictionary<string, IDataObject>, IDataDirectory
+    public abstract class DataDirectoryBase<TKey> : DataDictionary<TKey, IDataObject>, IDataDirectory<object>
     {
-        public static new IDataDirectory Create() => new DataDirectory();
+
+    }
+    public class DataDirectory<TKey> : DataDirectoryBase<TKey>, IDataDirectory<TKey>
+    {
+        public static new IDataDirectory<TKey> Create() => new DataDirectory<TKey>();
         protected DataDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(ChangeItem<IDataDirectory>.Create(ChangeType.Create).Yield())
+            => Observable.Return(ChangeItem<IDataDirectory<TKey>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IDataObject>>>(
                     _item.Switch()
                     .MergeMany(dO =>
                         dO.DataObject.Changes
-                        .Select(changes => ChangeDirectory.Create(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));
+                        .Select(changes => ChangeDirectory<TKey>.Create(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));
     }
 }
