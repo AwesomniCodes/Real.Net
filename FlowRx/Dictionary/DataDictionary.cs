@@ -172,7 +172,7 @@ namespace Awesomni.Codes.FlowRx
         IEnumerable<TDataObject> IReadOnlyDictionary<TKey, TDataObject>.Values => _item.Value.Items.Select(dO => dO.DataObject);
         public override int Count => _item.Value.Count;
         public override bool IsReadOnly => false;
-        TDataObject IReadOnlyDictionary<TKey, TDataObject>.this[TKey key] => throw new NotImplementedException();
+        TDataObject IReadOnlyDictionary<TKey, TDataObject>.this[TKey key] { get => this[key]; }
         public TDataObject this[TKey key]
         {
             get => Get(key) ?? throw new ArgumentOutOfRangeException("No value under key available");

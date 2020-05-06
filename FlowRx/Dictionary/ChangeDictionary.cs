@@ -37,8 +37,8 @@ namespace Awesomni.Codes.FlowRx
         }
 
         TKey IChangeDictionary<TKey, TDataObject>.Key => _key;
-        IEnumerable<IChange<TDataObject>> IChangeDictionary<TKey, TDataObject>.Changes => _changes;
         public override object? Key => _key;
+        IEnumerable<IChange<TDataObject>> IChangeDictionary<TKey, TDataObject>.Changes => _changes;
         public override IEnumerable<IChange<IDataObject>> Changes => _changes;
     }
 }

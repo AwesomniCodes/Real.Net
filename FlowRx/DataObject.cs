@@ -78,8 +78,8 @@ namespace Awesomni.Codes.FlowRx
             .MakeGenericMethod(type)
             .Invoke(null, new object?[] { initialValue });
 
-        private static IDataList List(Type dataObjectType)
-            => (IDataList)Activator.CreateInstance(typeof(DataList<>).MakeGenericType(dataObjectType), true);
+        private static IDataList<IDataObject> List(Type dataObjectType)
+            => (IDataList<IDataObject>)Activator.CreateInstance(typeof(DataList<>).MakeGenericType(dataObjectType), true);
 
         private static IDataList<TDataObject> List<TDataObject>() where TDataObject : class, IDataObject
             => DataList<TDataObject>.Create();

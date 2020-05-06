@@ -8,30 +8,32 @@ namespace Awesomni.Codes.FlowRx
 {
     using System.Collections.Generic;
 
-    public interface ChangeList : IChange<IDataList>
+    public interface IChangeList<TDataObject> : IChange<IDataList<TDataObject>> where TDataObject : class, IDataObject
     {
         int Key { get; }
-        IEnumerable<IChange> Changes { get; }
+        IEnumerable<IChange<TDataObject>> Changes { get; }
     }
 
-    public interface IChangeList<TDataObject> : ChangeList, IChange<IDataList<TDataObject>> where TDataObject : class, IDataObject
+    public abstract class ChangeList : IChangeList<IDataObject>
     {
-        new IEnumerable<IChange<TDataObject>> Changes { get; }
+        public abstract int Key { get; }
+        public abstract IEnumerable<IChange<IDataObject>> Changes { get; }
     }
-    public class ChangeList<TDataObject> : IChangeList<TDataObject> where TDataObject : class, IDataObject
+
+    public class ChangeList<TDataObject> : ChangeList, IChangeList<TDataObject> where TDataObject : class, IDataObject
     {
-        public int Key { get; }
+        private readonly IEnumerable<IChange<TDataObject>> _changes;
 
         public static IChangeList<TDataObject> Create(int key, IEnumerable<IChange<TDataObject>> changes)
             => new ChangeList<TDataObject>(key, changes);
         protected ChangeList(int key, IEnumerable<IChange<TDataObject>> changes)
         {
             Key = key;
-            Changes = changes;
+            _changes = changes;
         }
+        public override int Key { get; }
 
-        public IEnumerable<IChange<TDataObject>> Changes { get; private set; }
-
-        IEnumerable<IChange> ChangeList.Changes => Changes;
+        IEnumerable<IChange<TDataObject>> IChangeList<TDataObject>.Changes => _changes;
+        public override IEnumerable<IChange<IDataObject>> Changes => _changes;
     }
 }
