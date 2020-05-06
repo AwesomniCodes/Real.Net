@@ -51,6 +51,20 @@ namespace FlowRx.Dynamic
 
             return false;
         }
+
+        public override bool TryConvert(ConvertBinder binder, out object result)
+        {
+            if (typeof(IDataDirectory<TKey>).IsAssignableFrom(binder.Type))
+            {
+                result = _directory;
+                return true;
+            }
+
+            //simple version
+            result = _directory;
+            return true;
+            //return base.TryConvert(binder, out result);
+        }
     }
 
     internal class DataListDynamicActor<TDataObject> : DynamicObject, IDataDynamicActor where TDataObject : class, IDataObject
