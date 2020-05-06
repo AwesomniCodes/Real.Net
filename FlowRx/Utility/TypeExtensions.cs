@@ -36,11 +36,17 @@ namespace Awesomni.Codes.FlowRx.Utility
 
         public static T Convert<T>(this string input)
         {
+            if(input is T tInput)
+            {
+                return tInput;
+            }
+
             var converter = TypeDescriptor.GetConverter(typeof(T));
             if (converter != null)
             {
                 return (T)converter.ConvertFromString(input);
             }
+
             throw new NotSupportedException();
         }
     }

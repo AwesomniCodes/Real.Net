@@ -72,19 +72,8 @@ namespace Awesomni.Codes.FlowRx.Tests
         public void Mirroring_A_Directory_Is_Working_As_Expected(IDataDirectory<string> root)
         {
             var mirror = GetMirroredDirectory(root);
-            var mirrorSnapshot = mirror.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
-
-            var rootSnapshot = root.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
+            var mirrorSnapshot = mirror.Changes.Snapshot().ToDebugStringList();
+            var rootSnapshot = root.Changes.Snapshot().ToDebugStringList();
 
             Assert.Equal(mirrorSnapshot, rootSnapshot);
         }
@@ -93,19 +82,8 @@ namespace Awesomni.Codes.FlowRx.Tests
         [MemberData(nameof(GetCommonTestDirectoriesObjects))]
         public void When_Subscribing_Multiple_Times_The_Same_Definition_Is_Returned(IDataDirectory<string> root)
         {
-            var snapshot1 = root.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
-
-            var snapshot2 = root.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
+            var snapshot1 = root.Changes.Snapshot().ToDebugStringList();
+            var snapshot2 = root.Changes.Snapshot().ToDebugStringList();
 
             Assert.Equal(snapshot1, snapshot2);
         }
@@ -116,19 +94,8 @@ namespace Awesomni.Codes.FlowRx.Tests
         {
             var commonDirectory = GetCommonDirectoryWithCommonModification();
 
-            var snapshot1 = commonDirectory.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
-
-            var snapshot2 = commonDirectory.Changes
-                .Snapshot()
-                .SelectMany(changes => changes)
-                .Flattened()
-                .Select(fC => fC.ToDebugString())
-                .ToList();
+            var snapshot1 = commonDirectory.Changes.Snapshot().ToDebugStringList();
+            var snapshot2 = commonDirectory.Changes.Snapshot().ToDebugStringList();
 
             Assert.Equal(snapshot1, snapshot2);
         }

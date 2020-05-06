@@ -50,5 +50,14 @@ namespace Awesomni.Codes.FlowRx.Utility
                 }
             }
         }
+
+        public static List<string> ToDebugStringList(this IEnumerable<IEnumerable<IChange>> snapShot)
+        {
+            return snapShot
+            .SelectMany(changes => changes)
+            .Flattened()
+            .Select(fC => fC.ToDebugString())
+            .ToList();
+        }
     }
 }
