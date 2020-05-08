@@ -25,6 +25,17 @@ namespace Awesomni.Codes.FlowRx.Tests
             return root;
         }
 
+        public static IList<string> GetCommonDirectoryHardcodedDebugString()
+            => new List<string>
+                {
+                    ". - Create: ",
+                    "./TestDirectory - Create: ",
+                    "./TestDirectory/TestString - Create: TestString",
+                    "./TestDirectory/TestInt - Create: 23",
+                    "./TestDirectory/TestDouble - Create: 23",
+                    "./TestDirectory/TestBool - Create: True"
+                };
+
 
         public static IDataDirectory<string> GetMirroredDirectory(IDataDirectory<string> directory)
         {
@@ -88,6 +99,17 @@ namespace Awesomni.Codes.FlowRx.Tests
             Assert.Equal(snapshot1, snapshot2);
         }
 
+        [Fact]
+        public void Common_Directory_Snapshot_Equals_Hardcoded()
+        {
+            var commonDirectory = GetCommonDirectory();
+
+            var snapshot1 = commonDirectory.Changes.Snapshot().ToDebugStringList();
+            var snapshot2 = GetCommonDirectoryHardcodedDebugString();
+
+            Assert.Equal(snapshot1, snapshot2);
+            
+        }
 
         [Fact]
         public void When_Subscribing_To_A_Data_Object_Specific_Definition_Is_Returned()
