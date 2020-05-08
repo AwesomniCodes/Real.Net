@@ -13,7 +13,13 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public class DataObservable<TData> : DataObject, IDataObservable<TData>
+
+    public abstract class DataObservable : DataObject, IDataObservable<object?>
+    {
+        public abstract IDisposable Subscribe(IObserver<object?> observer);
+    }
+
+    public class DataObservable<TData> : DataObservable, IDataObservable<TData>
     {
         private readonly IObservable<TData> _observable;
 
@@ -52,7 +58,8 @@ namespace Awesomni.Codes.FlowRx
 
         public override ISubject<IEnumerable<IChange>> Changes { get; }
 
-        public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe();
+        public IDisposable Subscribe(IObserver<TData> observer) => _observable.Subscribe(observer);
 
+        public override IDisposable Subscribe(IObserver<object?> observer) => _observable.Select(tData => (object?) tData).Subscribe(observer);
     }
 }

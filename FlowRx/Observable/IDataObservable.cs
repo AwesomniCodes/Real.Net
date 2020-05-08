@@ -12,10 +12,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public interface IDataObservable : IDataObject
-    {
-    }
-    public interface IDataObservable<TData> : IDataObservable, IObservable<TData>
+    public interface IDataObservable<TData> : IDataObject, IObservable<TData>
     {
     }
 }
