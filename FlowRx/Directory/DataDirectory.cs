@@ -25,6 +25,8 @@ namespace Awesomni.Codes.FlowRx
     public class DataDirectory<TKey> : DataDirectoryBase<TKey>, IDataDirectory<TKey>
     {
         public static new IDataDirectory<TKey> Create() => new DataDirectory<TKey>();
+        static DataDirectory() => DataObject.InterfaceToClassTypeMap[typeof(IDataDirectory<>)] = typeof(DataDirectory<>);
+
         protected DataDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(ChangeItem<IDataDirectory<TKey>>.Create(ChangeType.Create).Yield())

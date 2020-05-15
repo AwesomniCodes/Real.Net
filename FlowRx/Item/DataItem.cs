@@ -17,6 +17,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class DataItem : DataObject, IDataItem<object?>
     {
+
         public abstract object? Value { get; }
 
         public abstract void Dispose();
@@ -28,17 +29,16 @@ namespace Awesomni.Codes.FlowRx
         public abstract void OnNext(object? value);
 
         public abstract IDisposable Subscribe(IObserver<object?> observer);
-
-        //public static IDataItem<object?> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
-
     }
 
     public class DataItem<TData> : DataItem, IDataItem<TData>
     {
+        static DataItem() => DataObject.InterfaceToClassTypeMap[typeof(IDataItem<>)] = typeof(DataItem<>);
+        public static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
+
         private readonly BehaviorSubject<TData> _subject;
         private bool _isDisposed;
 
-        public static IDataItem<TData> Create(TData initialValue = default) => new DataItem<TData>(initialValue);
         protected DataItem(TData initialValue = default)
         {
             _subject = new BehaviorSubject<TData>(initialValue);

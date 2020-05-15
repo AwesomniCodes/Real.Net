@@ -47,11 +47,12 @@ namespace Awesomni.Codes.FlowRx
     }
     public class DataList<TDataObject> : DataList, IDataList<TDataObject> where TDataObject : class, IDataObject
     {
+        public static IDataList<TDataObject> Create() => new DataList<TDataObject>();
+        static DataList() => DataObject.InterfaceToClassTypeMap[typeof(IDataList<>)] = typeof(DataList<>); 
+        
         private IDataList<TDataObject> @this => this;
         private object? _syncRoot;
         protected readonly BehaviorSubject<SourceList<TDataObject>> _item;
-
-        public static IDataList<TDataObject> Create() => new DataList<TDataObject>();
 
         protected DataList()
         {

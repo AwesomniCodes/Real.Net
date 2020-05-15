@@ -17,15 +17,7 @@ namespace Awesomni.Codes.FlowRx
     {
         public abstract ISubject<IEnumerable<IChange>> Changes { get; }
 
-        public static Dictionary<Type, Type> interfaceToClassTypeMap { get; }
-            = new Dictionary<Type, Type>
-                {
-                    { typeof(IDataDirectory<>), typeof(DataDirectory<>) },
-                    { typeof(IDataList<>), typeof(DataList<>) },
-                    { typeof(IDataDictionary<,>), typeof(DataDictionary<,>) },
-                    { typeof(IDataObservable<>), typeof(DataObservable<>) },
-                    { typeof(IDataItem<>), typeof(DataItem<>) },
-                };
+        public static IDictionary<Type, Type> InterfaceToClassTypeMap { get; } = new Dictionary<Type, Type>();
 
         private static IDataObject InvokeGenericCreation(Type dataObjectGenericDefinition, Type[] genericSubtypes, params object?[] arguments)
         => (IDataObject)dataObjectGenericDefinition
@@ -40,7 +32,7 @@ namespace Awesomni.Codes.FlowRx
             
             return typeof(IDataObject).IsAssignableFrom(genericArguments[0])
                     ? Create(genericArguments[0], new object[] { } )
-                    : InvokeGenericCreation(interfaceToClassTypeMap[objectType.GetGenericTypeDefinition()], objectType.GetGenericArguments(), constructorArgs)
+                    : InvokeGenericCreation(InterfaceToClassTypeMap[objectType.GetGenericTypeDefinition()], objectType.GetGenericArguments(), constructorArgs)
                         ?? throw new ArgumentException("The type is unknown", nameof(objectType));
         }
     }

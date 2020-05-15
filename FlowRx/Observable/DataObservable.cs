@@ -21,10 +21,12 @@ namespace Awesomni.Codes.FlowRx
 
     public class DataObservable<TData> : DataObservable, IDataObservable<TData>
     {
-        private readonly IObservable<TData> _observable;
-
         public static IDataObservable<TData> Create(IObservable<TData> observable, TData initialValue = default)
             => new DataObservable<TData>(observable, initialValue);
+        static DataObservable() => DataObject.InterfaceToClassTypeMap[typeof(IDataObservable<>)] = typeof(DataObservable<>);
+
+        private readonly IObservable<TData> _observable;
+
         protected DataObservable(IObservable<TData> observable, TData initialValue = default)
         {
             _observable = observable;

@@ -46,10 +46,11 @@ namespace Awesomni.Codes.FlowRx
     }
     public class DataDictionary<TKey, TDataObject> : DataDictionary, IDataDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
     {
+        public static IDataDictionary<TKey, TDataObject> Create() => new DataDictionary<TKey, TDataObject>();
+        static DataDictionary() => DataObject.InterfaceToClassTypeMap[typeof(IDataDictionary<,>)] = typeof(DataDictionary<,>); 
+        
         private IDataDictionary<TKey, TDataObject> @this => this;
         protected readonly BehaviorSubject<SourceCache<(TKey Key, TDataObject DataObject), TKey>> _item;
-
-        public static IDataDictionary<TKey, TDataObject> Create() => new DataDictionary<TKey, TDataObject>();
 
         protected DataDictionary()
         {
