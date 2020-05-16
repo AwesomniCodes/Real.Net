@@ -1,7 +1,10 @@
 using Awesomni.Codes.FlowRx;
 using Awesomni.Codes.FlowRx.Tests;
 using Awesomni.Codes.FlowRx.Utility;
+using FlowRx.Tests;
+using ImpromptuInterface;
 using System;
+using System.Dynamic;
 using Xunit;
 
 namespace FlowRx.Dynamic.Tests
@@ -35,24 +38,32 @@ namespace FlowRx.Dynamic.Tests
         [Fact]
         public void Dynamic_Composed_Common_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
         {
-            var commonDir = DataObjectTest.GetCommonDirectory();
-            IDataObject dynamicDir = GetDynamicCommonDirectory();
-
-            var snapshot1 = commonDir.Changes.Snapshot().ToDebugStringList();
-            var snapshot2 = dynamicDir.Changes.Snapshot().ToDebugStringList();
-            Assert.Equal(snapshot1, snapshot2);
+            IDataDirectory<string> dynamicDir = GetDynamicCommonDirectory();
+            Assert.Equal(
+                DataObjectTest.GetCommonDirectoryHardcodedDebugString(),
+                dynamicDir.Changes.Snapshot().ToDebugStringList());
         }
 
+        [Fact]
+        public void Dynamic_Implemenation_Common_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
+        {
+
+            dynamic expando = GetDynamicCommonDirectory();
+
+            ICommonDirectoryBaseValues myInterface = Impromptu.ActLike<ICommonDirectoryBaseValues>(expando);
+            myInterface.TestDirectory.TestBool = true;
+            Assert.Equal(
+                DataObjectTest.GetCommonDirectoryHardcodedDebugString(),
+                DataDynamicObject<ICommonDirectoryBaseValues>.Create().Changes.Snapshot().ToDebugStringList());
+        }
 
         [Fact]
         public void Dynamic_Composed_Common_Modified_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
         {
-            var commonDir = DataObjectTest.GetCommonDirectoryWithCommonModification();
-            IDataObject dynamicDir = GetDynamicCommonDirectoryWithCommonModifications() ;
-
-            var snapshot1 = commonDir.Changes.Snapshot().ToDebugStringList();
-            var snapshot2 = dynamicDir.Changes.Snapshot().ToDebugStringList();
-            Assert.Equal(snapshot1, snapshot2);
+            IDataDirectory<string> dynamicDir = GetDynamicCommonDirectoryWithCommonModifications();
+            Assert.Equal(
+                DataObjectTest.GetCommonDirectoryWithCommonModification().Changes.Snapshot().ToDebugStringList(),
+                dynamicDir.Changes.Snapshot().ToDebugStringList());
         }
     }
 }

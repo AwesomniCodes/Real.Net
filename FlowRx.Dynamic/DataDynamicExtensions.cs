@@ -8,9 +8,9 @@ namespace FlowRx.Dynamic
     public static class DataDynamicExtensions
     {
 
-        public static dynamic AsDynamic(this IDataObject @object, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
+        public static dynamic AsDynamic<TDataObject>(this TDataObject dataObject, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TDataObject : IDataObject
         {
-            switch (@object)
+            switch (dataObject)
             {
                 case IDataDirectory<object> directory:
                     return directory.AsDynamic(syntaxOptions);
@@ -20,7 +20,7 @@ namespace FlowRx.Dynamic
                     return list.AsDynamic(syntaxOptions);
                 case IDataDictionary<object, IDataObject> dictionary:
                     return dictionary.AsDynamic(syntaxOptions);
-                case IDataObservable observable:
+                case IDataObservable<object> observable:
                     return observable.AsDynamic(syntaxOptions);
                 default:
                     throw new ArgumentException("Unknown IDataObject provided");
@@ -36,10 +36,10 @@ namespace FlowRx.Dynamic
         public static dynamic AsDictionary<TKey, TDataObject>(this IDataDictionary<TKey, TDataObject> dictionary, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TDataObject : class, IDataObject
             => new DataDictionaryDynamicActor<TKey, TDataObject>(dictionary, syntaxOptions);
 
-        public static dynamic AsDynamic<T>(this IDataItem<T> item, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
-            => new DataItemDynamicActor<T>(item, syntaxOptions);
+        public static dynamic AsDynamic<TData>(this IDataItem<TData> item, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
+            => new DataItemDynamicActor<TData>(item, syntaxOptions);
 
-        public static dynamic AsDynamic(this IDataObservable observable, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
-            => new DataObservableDynamicActor(observable, syntaxOptions);
+        public static dynamic AsDynamic<TData>(this IDataObservable<TData> observable, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
+            => new DataObservableDynamicActor<TData>(observable, syntaxOptions);
     }
 }
