@@ -10,19 +10,19 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
 
-    public interface IChangeDirectory<TKey> : IChangeDictionary<TKey, IDataObject> { }
+    public interface IChangeDirectory<TKey> : IChangeDictionary<TKey, IEntity> { }
 
-    public abstract class ChangeDirectoryBase<TKey> : ChangeDictionary<TKey, IDataObject>, IChangeDirectory<object>
+    public abstract class ChangeDirectoryBase<TKey> : ChangeDictionary<TKey, IEntity>, IChangeDirectory<object>
     {
-        protected ChangeDirectoryBase(TKey key, IEnumerable<IChange<IDataObject>> changes) : base(key, changes)
+        protected ChangeDirectoryBase(TKey key, IEnumerable<IChange<IEntity>> changes) : base(key, changes)
         {
         }
     }
 
     public class ChangeDirectory<TKey> : ChangeDirectoryBase<TKey>, IChangeDirectory<TKey>
     {
-        public static new IChangeDirectory<TKey> Create(TKey key, IEnumerable<IChange<IDataObject>> changes)
+        public static new IChangeDirectory<TKey> Create(TKey key, IEnumerable<IChange<IEntity>> changes)
             => new ChangeDirectory<TKey>(key, changes);
-        protected ChangeDirectory(TKey key, IEnumerable<IChange<IDataObject>> changes) : base(key, changes) { }
+        protected ChangeDirectory(TKey key, IEnumerable<IChange<IEntity>> changes) : base(key, changes) { }
     }
 }

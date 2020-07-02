@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="DataDictionary.cs" project="FlowRx" solution="FlowRx" />
+//    file="EntityDirectory.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -18,22 +18,22 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class DataDirectoryBase<TKey> : DataDictionary<TKey, IDataObject>, IDataDirectory<object>
+    public abstract class EntityDirectoryBase<TKey> : EntityDictionary<TKey, IEntity>, IEntityDirectory<object>
     {
 
     }
-    public class DataDirectory<TKey> : DataDirectoryBase<TKey>, IDataDirectory<TKey>
+    public class EntityDirectory<TKey> : EntityDirectoryBase<TKey>, IEntityDirectory<TKey>
     {
-        public static new IDataDirectory<TKey> Create() => new DataDirectory<TKey>();
-        static DataDirectory() => DataObject.InterfaceToClassTypeMap[typeof(IDataDirectory<>)] = typeof(DataDirectory<>);
+        public static new IEntityDirectory<TKey> Create() => new EntityDirectory<TKey>();
+        static EntityDirectory() => Entity.InterfaceToClassTypeMap[typeof(IEntityDirectory<>)] = typeof(EntityDirectory<>);
 
-        protected DataDirectory() { }
+        protected EntityDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(ChangeItem<IDataDirectory<TKey>>.Create(ChangeType.Create).Yield())
-               .Concat<IEnumerable<IChange<IDataObject>>>(
+            => Observable.Return(ChangeValue<IEntityDirectory<TKey>>.Create(ChangeType.Create).Yield())
+               .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
-                    .MergeMany(dO =>
-                        dO.DataObject.Changes
-                        .Select(changes => ChangeDirectory<TKey>.Create(dO.Key, changes.Cast<IChange<IDataObject>>()).Yield())));
+                    .MergeMany(kE =>
+                        kE.Entity.Changes
+                        .Select(changes => ChangeDirectory<TKey>.Create(kE.Key, changes.Cast<IChange<IEntity>>()).Yield())));
     }
 }

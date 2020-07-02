@@ -1,5 +1,5 @@
 ﻿// <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="DataDynamicActors.cs" project="FlowRx.Dynamic" solution="FlowRx" />
+//    file="EntityDynamicActors.cs" project="FlowRx.Dynamic" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,9 +15,9 @@ using System.Linq.Expressions;
 namespace FlowRx.Dynamic
 {
 
-    internal class DataListDynamicActor<TDataObject> : DynamicObject, IDataDynamicActor where TDataObject : class, IDataObject
+    internal class EntityListDynamicActor<TEntity> : DynamicObject, IEntityDynamicActor where TEntity : class, IEntity
     {
-        internal DataListDynamicActor(IDataList<TDataObject> list, SyntaxOptions syntaxOptions)
+        internal EntityListDynamicActor(IEntityList<TEntity> list, SyntaxOptions syntaxOptions)
         {
             //TODO iterate over T properties and fill Expando property and Directory
         }
@@ -30,31 +30,30 @@ namespace FlowRx.Dynamic
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
             throw new NotImplementedException();
-
         }
     }
 
-    internal class DataItemDynamicActor<TData> : DynamicObject, IDataDynamicActor
+    internal class EntityValueDynamicActor<TValue> : DynamicObject, IEntityDynamicActor
     {
-        internal DataItemDynamicActor(IDataItem<TData> item, SyntaxOptions syntaxOptions)
+        internal EntityValueDynamicActor(IEntityValue<TValue> value, SyntaxOptions syntaxOptions)
         {
             //TODO iterate over T properties and fill Expando property and Directory
         }
 
     }
 
-    internal class DataDictionaryDynamicActor<TKey, TDataObject> : DynamicObject, IDataDynamicActor where TDataObject : class, IDataObject
+    internal class EntityDictionaryDynamicActor<TKey, TEntity> : DynamicObject, IEntityDynamicActor where TEntity : class, IEntity
     {
-        internal DataDictionaryDynamicActor(IDataDictionary<TKey, TDataObject> dictionary, SyntaxOptions syntaxOptions)
+        internal EntityDictionaryDynamicActor(IEntityDictionary<TKey, TEntity> dictionary, SyntaxOptions syntaxOptions)
         {
             //TODO iterate over T properties and fill Expando property and Directory
         }
 
     }
 
-    internal class DataObservableDynamicActor<TData> : DynamicObject, IDataDynamicActor
+    internal class EntityObservableDynamicActor<TValue> : DynamicObject, IEntityDynamicActor
     {
-        internal DataObservableDynamicActor(IDataObservable<TData> observable, SyntaxOptions syntaxOptions)
+        internal EntityObservableDynamicActor(IEntityObservable<TValue> observable, SyntaxOptions syntaxOptions)
         {
             //TODO iterate over T properties and fill Expando property and Directory
         }

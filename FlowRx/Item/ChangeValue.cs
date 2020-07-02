@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="ChangeItem.cs" project="FlowRx" solution="FlowRx" />
+//    file="ChangeValue.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,15 +9,15 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
 
-    public interface IChangeItem<TData> : IChange<IDataItem<TData>>
+    public interface IChangeValue<TValue> : IChange<IEntityValue<TValue>>
     {
         ChangeType ChangeType { get; }
-        TData Value { get; }
+        TValue Value { get; }
     }
 
-    public abstract class ChangeItem : IChangeItem<object?>
+    public abstract class ChangeValue : IChangeValue<object?>
     {
-        protected ChangeItem(ChangeType changeType, object? value = null)
+        protected ChangeValue(ChangeType changeType, object? value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -28,14 +28,14 @@ namespace Awesomni.Codes.FlowRx
         public object? Value { get; }
     }
 
-    public class ChangeItem<TData> : ChangeItem, IChangeItem<TData>
+    public class ChangeValue<TValue> : ChangeValue, IChangeValue<TValue>
     {
-        public static IChangeItem<TData> Create(ChangeType changeType, TData value = default)
-            => new ChangeItem<TData>(changeType, value);
+        public static IChangeValue<TValue> Create(ChangeType changeType, TValue value = default)
+            => new ChangeValue<TValue>(changeType, value);
 
-        protected ChangeItem(ChangeType changeType, TData value = default) : base(changeType, value) { }
+        protected ChangeValue(ChangeType changeType, TValue value = default) : base(changeType, value) { }
 
-        public new TData Value => base.Value is TData tValue ? tValue : default!;
+        public new TValue Value => base.Value is TValue tValue ? tValue : default!;
 
     }
 }

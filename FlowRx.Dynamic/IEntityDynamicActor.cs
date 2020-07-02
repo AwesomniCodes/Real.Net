@@ -1,12 +1,24 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="Change.cs" project="FlowRx" solution="FlowRx" />
+//    file="IEntityDynamicActor.cs" project="FlowRx.Dynamic" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Awesomni.Codes.FlowRx
 {
-    public interface IChange { }
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Dynamic;
+    using System.Reactive.Subjects;
 
-    public interface IChange<out TEntity> : IChange where TEntity : class, IEntity { }
+    public interface IEntityDynamicActor : IDynamicMetaObjectProvider
+    {
+
+    }
+
+    public interface IEntityDynamicActor<T> : IEntityDynamicActor where T : class
+    {
+        
+    }
 }

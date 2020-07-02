@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="IDataDictionary.cs" project="FlowRx" solution="FlowRx" />
+//    file="IEntityDictionary.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -11,12 +11,12 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IDataDictionary<TKey, TDataObject> : IDataObject, IEnumerable, IEnumerable<TDataObject>, ICollection<KeyValuePair<TKey, TDataObject>>, IEnumerable<KeyValuePair<TKey, TDataObject>>, IDictionary<TKey, TDataObject>,
-        IReadOnlyCollection<KeyValuePair<TKey, TDataObject>>, IReadOnlyDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
+    public interface IEntityDictionary<TKey, TEntity> : IEntity, IEnumerable, IEnumerable<TEntity>, ICollection<KeyValuePair<TKey, TEntity>>, IEnumerable<KeyValuePair<TKey, TEntity>>, IDictionary<TKey, TEntity>,
+        IReadOnlyCollection<KeyValuePair<TKey, TEntity>>, IReadOnlyDictionary<TKey, TEntity> where TEntity : class, IEntity
     {
-        TDataObject GetOrAdd(TKey key, Func<TDataObject> creator)
+        TEntity GetOrAdd(TKey key, Func<TEntity> creator)
         {
-            TDataObject CreateAndAdd()
+            TEntity CreateAndAdd()
             {
                 var obj = creator();
                 Add(key, obj);
@@ -25,7 +25,7 @@ namespace Awesomni.Codes.FlowRx
             return Get(key) ?? CreateAndAdd();
         }
 
-        TDataObject? Get(TKey key);
+        TEntity? Get(TKey key);
 
         void Copy(TKey sourceKey, TKey destinationKey);
 

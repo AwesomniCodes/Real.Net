@@ -14,12 +14,12 @@ namespace FlowRx.Dynamic.Tests
 
         public static dynamic GetDynamicCommonDirectory()
         {
-            var root = DataDirectory<string>.Create().AsDynamic();
-            root.TestDirectory = DataDirectory<string>.Create();
-            root.TestDirectory.TestString = DataItem<string>.Create("TestString");
-            root.TestDirectory.TestInt = DataItem<int>.Create(23);
-            root.TestDirectory.TestDouble = DataItem<double>.Create(23.0);
-            root.TestDirectory.TestBool = DataItem<bool>.Create(true);
+            var root = EntityDirectory<string>.Create().AsDynamic();
+            root.TestDirectory = EntityDirectory<string>.Create();
+            root.TestDirectory.TestString = EntityValue<string>.Create("TestString");
+            root.TestDirectory.TestInt = EntityValue<int>.Create(23);
+            root.TestDirectory.TestDouble = EntityValue<double>.Create(23.0);
+            root.TestDirectory.TestBool = EntityValue<bool>.Create(true);
             return root;
         }
 
@@ -38,9 +38,9 @@ namespace FlowRx.Dynamic.Tests
         [Fact]
         public void Dynamic_Composed_Common_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
         {
-            IDataDirectory<string> dynamicDir = GetDynamicCommonDirectory();
+            IEntityDirectory<string> dynamicDir = GetDynamicCommonDirectory();
             Assert.Equal(
-                DataObjectTest.GetCommonDirectoryHardcodedDebugString(),
+                EntityTest.GetCommonDirectoryHardcodedDebugString(),
                 dynamicDir.Changes.Snapshot().ToDebugStringList());
         }
 
@@ -53,16 +53,16 @@ namespace FlowRx.Dynamic.Tests
             ICommonDirectoryBaseValues myInterface = Impromptu.ActLike<ICommonDirectoryBaseValues>(expando);
             myInterface.TestDirectory.TestBool = true;
             Assert.Equal(
-                DataObjectTest.GetCommonDirectoryHardcodedDebugString(),
-                DataDynamicObject<ICommonDirectoryBaseValues>.Create().Changes.Snapshot().ToDebugStringList());
+                EntityTest.GetCommonDirectoryHardcodedDebugString(),
+                EntityDynamic<ICommonDirectoryBaseValues>.Create().Changes.Snapshot().ToDebugStringList());
         }
 
         [Fact]
         public void Dynamic_Composed_Common_Modified_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
         {
-            IDataDirectory<string> dynamicDir = GetDynamicCommonDirectoryWithCommonModifications();
+            IEntityDirectory<string> dynamicDir = GetDynamicCommonDirectoryWithCommonModifications();
             Assert.Equal(
-                DataObjectTest.GetCommonDirectoryWithCommonModification().Changes.Snapshot().ToDebugStringList(),
+                EntityTest.GetCommonDirectoryWithCommonModification().Changes.Snapshot().ToDebugStringList(),
                 dynamicDir.Changes.Snapshot().ToDebugStringList());
         }
     }

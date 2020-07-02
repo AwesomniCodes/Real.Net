@@ -9,37 +9,37 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
 
-    public interface IChangeDictionary<TKey, TDataObject> : IChange<IDataDictionary<TKey, TDataObject>> where TDataObject : class, IDataObject
+    public interface IChangeDictionary<TKey, TEntity> : IChange<IEntityDictionary<TKey, TEntity>> where TEntity : class, IEntity
     {
         TKey Key { get; }
-        IEnumerable<IChange<TDataObject>> Changes { get; }
+        IEnumerable<IChange<TEntity>> Changes { get; }
     }
 
-    public abstract class ChangeDictionary : IChangeDictionary<object, IDataObject>
+    public abstract class ChangeDictionary : IChangeDictionary<object, IEntity>
     {
         public abstract object Key { get; }
-        public abstract IEnumerable<IChange<IDataObject>> Changes { get; }
+        public abstract IEnumerable<IChange<IEntity>> Changes { get; }
     }
 
-    public class ChangeDictionary<TKey, TDataObject> : ChangeDictionary, IChangeDictionary<TKey, TDataObject> where TDataObject : class, IDataObject
+    public class ChangeDictionary<TKey, TEntity> : ChangeDictionary, IChangeDictionary<TKey, TEntity> where TEntity : class, IEntity
     {
         private readonly TKey _key;
-        private readonly IEnumerable<IChange<TDataObject>> _changes;
+        private readonly IEnumerable<IChange<TEntity>> _changes;
 
-        public static IChangeDictionary<TKey, TDataObject> Create(TKey key, IEnumerable<IChange<TDataObject>> changes)
-             => (typeof(TKey) == typeof(string) && typeof(TDataObject) == typeof(IDataObject)) ?
-            (IChangeDictionary<TKey, TDataObject>) ChangeDirectory<TKey>.Create(key, changes) :
-            new ChangeDictionary<TKey, TDataObject>(key, changes);
+        public static IChangeDictionary<TKey, TEntity> Create(TKey key, IEnumerable<IChange<TEntity>> changes)
+             => (typeof(TKey) == typeof(string) && typeof(TEntity) == typeof(IEntity)) ?
+            (IChangeDictionary<TKey, TEntity>) ChangeDirectory<TKey>.Create(key, changes) :
+            new ChangeDictionary<TKey, TEntity>(key, changes);
 
-        protected ChangeDictionary(TKey key, IEnumerable<IChange<TDataObject>> changes)
+        protected ChangeDictionary(TKey key, IEnumerable<IChange<TEntity>> changes)
         {
             _key = key ?? throw new ArgumentNullException();
             _changes = changes;
         }
 
-        TKey IChangeDictionary<TKey, TDataObject>.Key => _key;
+        TKey IChangeDictionary<TKey, TEntity>.Key => _key;
         public override object Key => _key!;
-        IEnumerable<IChange<TDataObject>> IChangeDictionary<TKey, TDataObject>.Changes => _changes;
-        public override IEnumerable<IChange<IDataObject>> Changes => _changes;
+        IEnumerable<IChange<TEntity>> IChangeDictionary<TKey, TEntity>.Changes => _changes;
+        public override IEnumerable<IChange<IEntity>> Changes => _changes;
     }
 }
