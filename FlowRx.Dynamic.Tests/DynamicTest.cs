@@ -1,13 +1,13 @@
 using Awesomni.Codes.FlowRx;
 using Awesomni.Codes.FlowRx.Tests;
 using Awesomni.Codes.FlowRx.Utility;
-using FlowRx.Tests;
 using ImpromptuInterface;
 using System;
 using System.Dynamic;
+using System.Reactive.Linq;
 using Xunit;
 
-namespace FlowRx.Dynamic.Tests
+namespace Awesomni.Codes.FlowRx.Dynamic.Tests
 {
     public class DynamicTest
     {
@@ -45,16 +45,46 @@ namespace FlowRx.Dynamic.Tests
         }
 
         [Fact]
-        public void Dynamic_Implemenation_Common_Directory_Has_Same_Snapshot_As_Undynamic_Composition()
+        public void Dynamic_Implementation_BaseValueInterface_With_Read_Write_Has_Hardcoded_Snapshot()
         {
-
-            dynamic expando = GetDynamicCommonDirectory();
-
-            ICommonDirectoryBaseValues myInterface = Impromptu.ActLike<ICommonDirectoryBaseValues>(expando);
-            myInterface.TestDirectory.TestBool = true;
+            var dynamicEntity = EntityDynamic<ICommonDirectoryBaseValues>.Create();
+            var commonDirectory = dynamicEntity.Value;
+            commonDirectory.TestDirectory.TestBool = !commonDirectory.TestDirectory.TestBool;
+            commonDirectory.TestDirectory.TestDouble += 23;
+            commonDirectory.TestDirectory.TestInt += 23;
+            commonDirectory.TestDirectory.TestString = $"{commonDirectory.TestDirectory.TestString}TestString";
             Assert.Equal(
                 EntityTest.GetCommonDirectoryHardcodedDebugString(),
-                EntityDynamic<ICommonDirectoryBaseValues>.Create().Changes.Snapshot().ToDebugStringList());
+                dynamicEntity.Changes.Snapshot().ToDebugStringList());
+        }
+
+        [Fact]
+        public void Dynamic_Implementation_SubjectValueInterface_With_Read_Write_Has_Hardcoded_Snapshot()
+        {
+            var dynamicEntity = EntityDynamic<ICommonDirectorySubjectValues>.Create();
+            var commonDirectory = dynamicEntity.Value;
+            var testDirectory = commonDirectory.TestDirectory.FirstAsync().Wait();
+            testDirectory.TestBool.OnNext(!testDirectory.TestBool.FirstAsync().Wait());
+            testDirectory.TestDouble.OnNext(testDirectory.TestDouble.FirstAsync().Wait() + 23);
+            testDirectory.TestInt.OnNext(testDirectory.TestInt.FirstAsync().Wait() + 23);
+            testDirectory.TestString.OnNext($"{testDirectory.TestString.FirstAsync().Wait()}TestString");
+            Assert.Equal(
+                EntityTest.GetCommonDirectoryHardcodedDebugString(),
+                dynamicEntity.Changes.Snapshot().ToDebugStringList());
+        }
+
+        [Fact]
+        public void Dynamic_Implementation_EntityValueInterface_With_Read_Write_Has_Hardcoded_Snapshot()
+        {
+            var dynamicEntity = EntityDynamic<ICommonDirectoryEntityValues>.Create();
+            var commonDirectory = dynamicEntity.Value;
+            commonDirectory.TestDirectory.TestBool.OnNext(!commonDirectory.TestDirectory.TestBool.Value);
+            commonDirectory.TestDirectory.TestDouble.OnNext(commonDirectory.TestDirectory.TestDouble.Value + 23);
+            commonDirectory.TestDirectory.TestInt.OnNext(commonDirectory.TestDirectory.TestInt.Value + 23);
+            commonDirectory.TestDirectory.TestString.OnNext($"{commonDirectory.TestDirectory.TestString.Value}TestString");
+            Assert.Equal(
+                EntityTest.GetCommonDirectoryHardcodedDebugString(),
+                dynamicEntity.Changes.Snapshot().ToDebugStringList());
         }
 
         [Fact]

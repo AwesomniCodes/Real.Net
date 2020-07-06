@@ -3,7 +3,7 @@ using ImpromptuInterface;
 using System;
 using System.Dynamic;
 
-namespace FlowRx.Dynamic
+namespace Awesomni.Codes.FlowRx.Dynamic
 {
     [Flags]
     public enum SyntaxOptions

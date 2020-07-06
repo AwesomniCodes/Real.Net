@@ -1,9 +1,10 @@
 ﻿using Awesomni.Codes.FlowRx;
+using Awesomni.Codes.FlowRx.Dynamic.Actors;
 using ImpromptuInterface;
 using System;
 using System.Dynamic;
 
-namespace FlowRx.Dynamic
+namespace Awesomni.Codes.FlowRx.Dynamic
 {
     public static class EntityDynamicExtensions
     {
@@ -12,6 +13,8 @@ namespace FlowRx.Dynamic
         {
             switch (entity)
             {
+                case IEntityDynamic<object> dynamicEntity:
+                    return dynamicEntity.AsDynamic(syntaxOptions);
                 case IEntityDirectory<object> directory:
                     return directory.AsDynamic(syntaxOptions);
                 case IEntityValue<object?> value:
@@ -27,13 +30,15 @@ namespace FlowRx.Dynamic
             }
         }
 
+        public static dynamic AsDynamic<TInterface>(this IEntityDynamic<TInterface> dynamicEntity, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TInterface : class
+            => new EntityDynamicDynamicActor<TInterface>(dynamicEntity, syntaxOptions);
         public static dynamic AsDynamic<TKey>(this IEntityDirectory<TKey> directory, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
             => new EntityDirectoryDynamicActor<TKey>(directory, syntaxOptions);
 
         public static dynamic AsDynamic<TEntity>(this IEntityList<TEntity> list, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : class, IEntity
             => new EntityListDynamicActor<TEntity>(list, syntaxOptions);
 
-        public static dynamic AsDictionary<TKey, TEntity>(this IEntityDictionary<TKey, TEntity> dictionary, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : class, IEntity
+        public static dynamic AsDynamic<TKey, TEntity>(this IEntityDictionary<TKey, TEntity> dictionary, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : class, IEntity
             => new EntityDictionaryDynamicActor<TKey, TEntity>(dictionary, syntaxOptions);
 
         public static dynamic AsDynamic<TValue>(this IEntityValue<TValue> value, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)

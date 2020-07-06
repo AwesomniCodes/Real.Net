@@ -4,15 +4,15 @@
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Awesomni.Codes.FlowRx
+namespace Awesomni.Codes.FlowRx.Dynamic
 {
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IEntityDynamic<T> : IEntityDirectory<string> where T : class
+    public interface IEntityDynamic<TInterface> : IEntityDirectory<string> where TInterface : class
     {
-        T Value { get; }
+        TInterface Value { get; }
     }
 }
