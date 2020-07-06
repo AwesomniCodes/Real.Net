@@ -18,8 +18,9 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityList : Entity, IEntityList<IEntity>
+    public abstract class EntityList : Entity, IEntityList<IEntity>, IEnumerable, ICollection, IList
     {
+        static EntityList() => Entity.InterfaceToClassTypeMap[typeof(IEntityList<>)] = typeof(EntityList<>);
         public abstract IEntity this[int index] { get; set; }
         object IList.this[int index] { get => this[index]; set => this[index] = (IEntity) value; }
 
@@ -48,7 +49,6 @@ namespace Awesomni.Codes.FlowRx
     public class EntityList<TEntity> : EntityList, IEntityList<TEntity> where TEntity : class, IEntity
     {
         public static IEntityList<TEntity> Create() => new EntityList<TEntity>();
-        static EntityList() => Entity.InterfaceToClassTypeMap[typeof(IEntityList<>)] = typeof(EntityList<>); 
         
         private IEntityList<TEntity> @this => this;
         private object? _syncRoot;
@@ -150,7 +150,7 @@ namespace Awesomni.Codes.FlowRx
             CopyTo(tdArray, index);
         }
         public override void CopyTo(IEntity[] array, int arrayIndex) => throw new NotImplementedException();
-        public void CopyTo(TEntity[] array, int arrayIndex) => _item.Value.Items.Select((kE, index) => (kE, index)).ForEach(item => array[arrayIndex + item.index] = item.dO);
+        public void CopyTo(TEntity[] array, int arrayIndex) => _item.Value.Items.Select((kE, index) => (kE, index)).ForEach(item => array[arrayIndex + item.index] = item.kE);
         public override IEnumerator<IEntity> GetEnumerator() => throw new NotImplementedException();
         public override int IndexOf(object value) => value is TEntity entity ? IndexOf(entity) : -1;
         public override int IndexOf(IEntity item) => item is TEntity entity ? IndexOf(entity) : -1;

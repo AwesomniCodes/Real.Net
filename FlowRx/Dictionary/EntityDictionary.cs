@@ -20,6 +20,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityDictionary : Entity, IEntityDictionary<object, IEntity>
     {
+        static EntityDictionary() => Entity.InterfaceToClassTypeMap[typeof(IEntityDictionary<,>)] = typeof(EntityDictionary<,>);
         public abstract IEntity this[object key] { get; set; }
         public abstract ICollection<object> Keys { get; }
         public abstract ICollection<IEntity> Values { get; }
@@ -47,7 +48,6 @@ namespace Awesomni.Codes.FlowRx
     public class EntityDictionary<TKey, TEntity> : EntityDictionary, IEntityDictionary<TKey, TEntity> where TEntity : class, IEntity
     {
         public static IEntityDictionary<TKey, TEntity> Create() => new EntityDictionary<TKey, TEntity>();
-        static EntityDictionary() => Entity.InterfaceToClassTypeMap[typeof(IEntityDictionary<,>)] = typeof(EntityDictionary<,>); 
         
         private IEntityDictionary<TKey, TEntity> @this => this;
         protected readonly BehaviorSubject<SourceCache<(TKey Key, TEntity Entity), TKey>> _item;

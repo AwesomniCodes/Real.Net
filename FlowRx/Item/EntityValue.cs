@@ -17,7 +17,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityValue : Entity, IEntityValue<object?>
     {
-
+        static EntityValue() => Entity.InterfaceToClassTypeMap[typeof(IEntityValue<>)] = typeof(EntityValue<>);
         public abstract object? Value { get; }
 
         public abstract void Dispose();
@@ -33,7 +33,6 @@ namespace Awesomni.Codes.FlowRx
 
     public class EntityValue<TValue> : EntityValue, IEntityValue<TValue>
     {
-        static EntityValue() => Entity.InterfaceToClassTypeMap[typeof(IEntityValue<>)] = typeof(EntityValue<>);
         public static IEntityValue<TValue> Create(TValue initialValue = default) => new EntityValue<TValue>(initialValue);
 
         private readonly BehaviorSubject<TValue> _subject;

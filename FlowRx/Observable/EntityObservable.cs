@@ -16,6 +16,7 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityObservable : Entity, IEntityObservable<object?>
     {
+        static EntityObservable() => Entity.InterfaceToClassTypeMap[typeof(IEntityObservable<>)] = typeof(EntityObservable<>);
         public abstract IDisposable Subscribe(IObserver<object?> observer);
     }
 
@@ -23,7 +24,6 @@ namespace Awesomni.Codes.FlowRx
     {
         public static IEntityObservable<TValue> Create(IObservable<TValue> observable, TValue initialValue = default)
             => new EntityObservable<TValue>(observable, initialValue);
-        static EntityObservable() => Entity.InterfaceToClassTypeMap[typeof(IEntityObservable<>)] = typeof(EntityObservable<>);
 
         private readonly IObservable<TValue> _observable;
 

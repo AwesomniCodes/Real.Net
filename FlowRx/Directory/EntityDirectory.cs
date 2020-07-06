@@ -20,12 +20,11 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityDirectoryBase<TKey> : EntityDictionary<TKey, IEntity>, IEntityDirectory<object>
     {
-
+        static EntityDirectoryBase() => Entity.InterfaceToClassTypeMap[typeof(IEntityDirectory<>)] = typeof(EntityDirectory<>);
     }
     public class EntityDirectory<TKey> : EntityDirectoryBase<TKey>, IEntityDirectory<TKey>
     {
         public static new IEntityDirectory<TKey> Create() => new EntityDirectory<TKey>();
-        static EntityDirectory() => Entity.InterfaceToClassTypeMap[typeof(IEntityDirectory<>)] = typeof(EntityDirectory<>);
 
         protected EntityDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
