@@ -29,7 +29,7 @@ namespace Awesomni.Codes.FlowRx.Utility
             Func<TSource, TResult> transform)
         {
             return Observer.Create<TSource>(
-                data => { observable.OnNext(transform(data)); },
+                source => { observable.OnNext(transform(source)); },
                 observable.OnError,
                 observable.OnCompleted);
         }
