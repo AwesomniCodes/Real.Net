@@ -17,13 +17,10 @@ namespace Awesomni.Codes.FlowRx.Utility
         public static string ToDebugString(this (List<object> KeyChain, ChangeType changeType, object? Value) flatChange)
         {
             var sb = new StringBuilder();
-            sb.Append('.');
-            foreach (var key in flatChange.KeyChain)
-            {
-                sb.Append($"/{key.ToString()}");
-            }
 
-            return $"{sb.ToString()} - {flatChange.changeType}: {flatChange.Value}";
+            flatChange.KeyChain.ForEach(key => sb.Append($"/{key}"));
+
+            return $"{sb} - {flatChange.changeType}: {flatChange.Value}";
         }
 
         public static IEnumerable<(List<object> KeyChain, ChangeType changeType, object? Value)> Flattened(this IEnumerable<IChange> changes, IEnumerable<object>? curKeyChain = null)
@@ -40,11 +37,21 @@ namespace Awesomni.Codes.FlowRx.Utility
                 yield return (keyChain, valueChange.ChangeType, valueChange.Value);
             }
 
-            if (change is IChangeDictionary<object?, IEntity> childChange)
+            if (change is IChangeDictionary<object?, IEntity> dictionaryChange)
             {
-                keyChain = keyChain.Concat(childChange.Key!.Yield()).ToList();
+                keyChain = keyChain.Concat(dictionaryChange.Key!.Yield()).ToList();
 
-                foreach (var flattenedChildItem in childChange.Changes.Flattened(keyChain))
+                foreach (var flattenedChildItem in dictionaryChange.Changes.Flattened(keyChain))
+                {
+                    yield return flattenedChildItem;
+                }
+            }
+
+            if (change is IChangeList<IEntity> listChange)
+            {
+                keyChain = keyChain.Concat((listChange.Key as object).Yield()).ToList();
+
+                foreach (var flattenedChildItem in listChange.Changes.Flattened(keyChain))
                 {
                     yield return flattenedChildItem;
                 }
