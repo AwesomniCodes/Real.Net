@@ -11,7 +11,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IEntityList<TEntityObject> : IEntity, IEnumerable, ICollection, IList, IEnumerable<TEntityObject>, ICollection<TEntityObject>, IList<TEntityObject>, IReadOnlyCollection<TEntityObject> where TEntityObject : class, IEntity
+    public interface IEntityList<TEntityObject> : IEntity, IEnumerable<TEntityObject>, ICollection<TEntityObject>, IList<TEntityObject>, IReadOnlyCollection<TEntityObject> where TEntityObject : class, IEntity
     {
         new TEntityObject this[int index] { get; set; }
     }
