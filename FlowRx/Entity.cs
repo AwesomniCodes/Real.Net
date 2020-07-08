@@ -15,9 +15,26 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class Entity : IEntity
     {
-        public abstract ISubject<IEnumerable<IChange>> Changes { get; }
+        private ISubject<IEnumerable<IChange>>? _changes;
+        public ISubject<IEnumerable<IChange>> Changes => _changes ?? (_changes = CreateChangesSubject());
 
-        public static IDictionary<Type, Type> InterfaceToClassTypeMap { get; } = new Dictionary<Type, Type>();
+        protected virtual ISubject<IEnumerable<IChange>> CreateChangesSubject()
+            => Subject.Create<IEnumerable<IChange>>(
+                    CreateObserverForChangesSubject(),
+                    CreateObservableForChangesSubject());
+
+        protected abstract IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject();
+
+        protected abstract IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject();
+
+        public static IDictionary<Type, Type> InterfaceToClassTypeMap { get; } 
+            = new Dictionary<Type, Type> {
+                {typeof(IEntityDirectory<>), typeof(EntityDirectory<>) },
+                {typeof(IEntityDictionary<,>), typeof(EntityDictionary<,>) },
+                {typeof(IEntityList<>), typeof(EntityList<>) },
+                {typeof(IEntityObservable<>), typeof(EntityObservable<>) },
+                {typeof(IEntityValue<>), typeof(EntityValue<>) },
+            };
 
         private static IEntity InvokeGenericCreation(Type entityGenericDefinition, Type[] genericSubtypes, params object?[] arguments)
         => (IEntity)entityGenericDefinition
@@ -30,10 +47,11 @@ namespace Awesomni.Codes.FlowRx
             var genericArguments = objectType.GetGenericArguments();
             var genericDefinition = objectType.GetGenericTypeDefinition();
             
-            return typeof(IEntity).IsAssignableFrom(genericArguments[0])
+            return typeof(IEntity).IsAssignableFrom(genericArguments[0]) && typeof(IEntityValue<>).IsAssignableFrom(genericDefinition)
                     ? Create(genericArguments[0], new object[] { } )
                     : InvokeGenericCreation(InterfaceToClassTypeMap[objectType.GetGenericTypeDefinition()], objectType.GetGenericArguments(), constructorArgs)
                         ?? throw new ArgumentException("The type is unknown", nameof(objectType));
         }
+
     }
 }

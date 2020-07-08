@@ -20,6 +20,10 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Tests
             root.TestDirectory.TestInt = EntityValue<int>.Create(23);
             root.TestDirectory.TestDouble = EntityValue<double>.Create(23.0);
             root.TestDirectory.TestBool = EntityValue<bool>.Create(true);
+            root.TestDirectory.TestList = EntityList<IEntityValue<int>>.Create();
+            root.TestDirectory.TestList.Add(EntityValue<int>.Create(1));
+            root.TestDirectory.TestList.Add(EntityValue<int>.Create(10));
+            root.TestDirectory.TestList.Add(EntityValue<int>.Create(15));
             return root;
         }
 

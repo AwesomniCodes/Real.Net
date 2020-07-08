@@ -20,7 +20,6 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityDictionary : Entity, IEntityDictionary<object, IEntity>
     {
-        static EntityDictionary() => Entity.InterfaceToClassTypeMap[typeof(IEntityDictionary<,>)] = typeof(EntityDictionary<,>);
         public abstract IEntity this[object key] { get; set; }
         public abstract ICollection<object> Keys { get; }
         public abstract ICollection<IEntity> Values { get; }
@@ -56,8 +55,6 @@ namespace Awesomni.Codes.FlowRx
         {
             _item = new BehaviorSubject<SourceCache<(TKey Key, TEntity Entity), TKey>>(new SourceCache<(TKey Key, TEntity Entity), TKey>(o => o.Key));
 
-            Changes = CreateChangesSubject();
-
             //Subscription to remove completed childs from list
             Changes.Subscribe(childChanges =>
             {
@@ -77,12 +74,7 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        protected virtual ISubject<IEnumerable<IChange>> CreateChangesSubject()
-            => Subject.Create<IEnumerable<IChange>>(
-                    CreateObserverForChangesSubject(),
-                    CreateObservableForChangesSubject());
-
-        protected virtual IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+        protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
             => Observer.Create<IEnumerable<IChange>>(changes =>
             {
                 changes.ForEach(change =>
@@ -111,7 +103,7 @@ namespace Awesomni.Codes.FlowRx
                 });
             });
 
-        protected virtual IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
+        protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(ChangeValue<IEntityDictionary<TKey, TEntity>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
@@ -164,7 +156,6 @@ namespace Awesomni.Codes.FlowRx
             value = kvp.ValueOrDefault().Value.Entity;
             return kvp.HasValue;
         }
-        public override ISubject<IEnumerable<IChange>> Changes { get; }
         public override ICollection<object> Keys => _item.Value.Keys.Cast<object>().AsList();
         ICollection<TKey> IDictionary<TKey, TEntity>.Keys => _item.Value.Keys.AsList();
         IEnumerable<TKey> IReadOnlyDictionary<TKey, TEntity>.Keys => _item.Value.Keys;

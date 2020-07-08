@@ -20,7 +20,6 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityList : Entity, IEntityList<IEntity>, IEnumerable, ICollection, IList
     {
-        static EntityList() => Entity.InterfaceToClassTypeMap[typeof(IEntityList<>)] = typeof(EntityList<>);
         public abstract IEntity this[int index] { get; set; }
         object IList.this[int index] { get => this[index]; set => this[index] = (IEntity) value; }
 
@@ -58,8 +57,6 @@ namespace Awesomni.Codes.FlowRx
         {
             _item = new BehaviorSubject<SourceList<TEntity>>(new SourceList<TEntity>());
 
-            Changes = CreateChangesSubject();
-
             //Subscription to remove completed childs from list
             Changes.Subscribe(childChanges =>
             {
@@ -79,12 +76,7 @@ namespace Awesomni.Codes.FlowRx
             });
         }
 
-        private ISubject<IEnumerable<IChange>> CreateChangesSubject()
-            => Subject.Create<IEnumerable<IChange>>(
-                    CreateObserverForChangesSubject(),
-                    CreateObservableForChangesSubject());
-
-        private IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+        protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
             => Observer.Create<IEnumerable<IChange>>(changes =>
             {
                 changes.ForEach(change =>
@@ -120,14 +112,13 @@ namespace Awesomni.Codes.FlowRx
                 });
             });
 
-        private IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
+        protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
             => Observable.Return(ChangeValue<IEntityList<TEntity>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
-                    .Transform((entity, index) => (Entity: entity, Index: index))
-                    .MergeMany(entityWithIndex =>
-                        entityWithIndex.Entity.Changes
-                        .Select(changes => ChangeList<TEntity>.Create(entityWithIndex.Index, changes.Cast<IChange<TEntity>>()).Yield())));
+                    .MergeMany(entity =>
+                        entity.Changes
+                        .Select(changes => ChangeList<TEntity>.Create(_item.Value.Items.IndexOf(entity), changes.Cast<IChange<TEntity>>()).Yield())));
 
         public override int Add(object value)
         {
@@ -163,7 +154,6 @@ namespace Awesomni.Codes.FlowRx
         public bool Remove(TEntity item) => _item.Value.Remove(item);
         public override void RemoveAt(int index) => _item.Value.RemoveAt(index);
         IEnumerator<TEntity> IEnumerable<TEntity>.GetEnumerator() => _item.Value.Items.Select(kE => kE).GetEnumerator();
-        public override ISubject<IEnumerable<IChange>> Changes { get; }
         public override bool IsFixedSize => false;
         public override bool IsReadOnly => false;
         public override int Count => _item.Value.Count;

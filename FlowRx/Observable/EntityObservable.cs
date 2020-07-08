@@ -16,49 +16,36 @@ namespace Awesomni.Codes.FlowRx
 
     public abstract class EntityObservable : Entity, IEntityObservable<object?>
     {
-        static EntityObservable() => Entity.InterfaceToClassTypeMap[typeof(IEntityObservable<>)] = typeof(EntityObservable<>);
         public abstract IDisposable Subscribe(IObserver<object?> observer);
     }
 
     public class EntityObservable<TValue> : EntityObservable, IEntityObservable<TValue>
     {
-        public static IEntityObservable<TValue> Create(IObservable<TValue> observable, TValue initialValue = default)
-            => new EntityObservable<TValue>(observable, initialValue);
+        public static IEntityObservable<TValue> Create(IObservable<TValue> observable)
+            => new EntityObservable<TValue>(observable);
 
         private readonly IObservable<TValue> _observable;
 
-        protected EntityObservable(IObservable<TValue> observable, TValue initialValue = default)
+        protected EntityObservable(IObservable<TValue> observable)
         {
             _observable = observable;
-            Value = initialValue;
-            var isFirst = true;
-
-            Changes = Subject.Create<IEnumerable<IChange>>(
-                    Observer.Create<IEnumerable<IChange>>(changes =>
-                    {
-                        //Handle Errors
-                        throw new InvalidOperationException($"{nameof(EntityObservable)} cannot be updated");
-                    }),
-                    Observable.Return(ChangeValue<TValue>.Create(ChangeType.Connect, initialValue).Yield())
-                    .Concat(observable.DistinctUntilChanged().SelectMany(value =>
-                    {
-                        if (isFirst && EqualityComparer<TValue>.Default.Equals(Value, value))
-                        {
-                            return Observable.Empty<IEnumerable<IChangeValue<TValue>>>();
-                        }
-
-                        isFirst = false;
-
-                        return Observable.Return(ChangeValue<TValue>.Create(ChangeType.Modify, value).Yield());
-                    }))
-                    .Concat(Observable.Return(ChangeValue<TValue>.Create(ChangeType.Complete, Value).Yield()))
-                    .Concat(Observable.Never<IEnumerable<IChangeValue<TValue>>>())); //Avoid OnComplete
         }
 
 
-        public TValue Value { get; }
+        protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+            => Observer.Create<IEnumerable<IChange>>(changes =>
+            {
+                //Handle Errors
+                throw new InvalidOperationException($"{nameof(EntityObservable)} cannot be updated");
+            });
 
-        public override ISubject<IEnumerable<IChange>> Changes { get; }
+        protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
+            => _observable
+                .DistinctUntilChanged()
+                .Publish(pub =>
+                    pub.Take(1).Select(value => ChangeValue<TValue>.Create(ChangeType.Create, value).Yield())
+                        .Merge(pub.Skip(1).Select(value => ChangeValue<TValue>.Create(ChangeType.Modify, value).Yield())))
+                .Concat(Observable.Return(ChangeValue<TValue>.Create(ChangeType.Complete).Yield()));
 
         public IDisposable Subscribe(IObserver<TValue> observer) => _observable.Subscribe(observer);
 

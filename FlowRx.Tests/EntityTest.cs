@@ -22,18 +22,26 @@ namespace Awesomni.Codes.FlowRx.Tests
             var testInt = subFolder.GetOrAdd("TestInt", () => EntityValue<int>.Create(23));
             var testDouble = subFolder.GetOrAdd("TestDouble", () => EntityValue<double>.Create(23.0));
             var testBool = subFolder.GetOrAdd("TestBool", () => EntityValue<bool>.Create(true));
+            var testList = subFolder.GetOrAdd("TestList", () => EntityList<IEntityValue<int>>.Create());
+            testList.Add(EntityValue<int>.Create(1));
+            testList.Add(EntityValue<int>.Create(10));
+            testList.Add(EntityValue<int>.Create(15));
             return root;
         }
 
         public static IList<string> GetCommonDirectoryHardcodedDebugString()
             => new List<string>
                 {
-                    ". - Create: ",
-                    "./TestDirectory - Create: ",
-                    "./TestDirectory/TestString - Create: TestString",
-                    "./TestDirectory/TestInt - Create: 23",
-                    "./TestDirectory/TestDouble - Create: 23",
-                    "./TestDirectory/TestBool - Create: True"
+                    " - Create: ",
+                    "/TestDirectory - Create: ",
+                    "/TestDirectory/TestString - Create: TestString",
+                    "/TestDirectory/TestInt - Create: 23",
+                    "/TestDirectory/TestDouble - Create: 23",
+                    "/TestDirectory/TestBool - Create: True",
+                    "/TestDirectory/TestList - Create: ",
+                    "/TestDirectory/TestList/0 - Create: 1",
+                    "/TestDirectory/TestList/1 - Create: 10",
+                    "/TestDirectory/TestList/2 - Create: 15"
                 };
 
 

@@ -10,14 +10,16 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http.Headers;
     using System.Reactive;
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityValue : Entity, IEntityValue<object?>
+    public abstract class EntityValueBase<TValue> : EntityObservable<TValue>, IEntityValue<object?>
     {
-        static EntityValue() => Entity.InterfaceToClassTypeMap[typeof(IEntityValue<>)] = typeof(EntityValue<>);
+        protected EntityValueBase(BehaviorSubject<TValue> subject) : base(subject) { }
+
         public abstract object? Value { get; }
 
         public abstract void Dispose();
@@ -27,57 +29,24 @@ namespace Awesomni.Codes.FlowRx
         public abstract void OnError(Exception error);
 
         public abstract void OnNext(object? value);
-
-        public abstract IDisposable Subscribe(IObserver<object?> observer);
     }
 
-    public class EntityValue<TValue> : EntityValue, IEntityValue<TValue>
+    public class EntityValue<TValue> : EntityValueBase<TValue>, IEntityValue<TValue>
     {
+        private readonly BehaviorSubject<TValue> _subject;
         public static IEntityValue<TValue> Create(TValue initialValue = default) => new EntityValue<TValue>(initialValue);
 
-        private readonly BehaviorSubject<TValue> _subject;
         private bool _isDisposed;
 
-        protected EntityValue(TValue initialValue = default)
+        protected EntityValue(TValue initialValue = default) : this(new BehaviorSubject<TValue>(initialValue)) { }
+
+        protected EntityValue(BehaviorSubject<TValue> subject) : base(subject)
         {
-            _subject = new BehaviorSubject<TValue>(initialValue);
-
-            Changes = Subject.Create<IEnumerable<IChange>>(
-                    Observer.Create<IEnumerable<IChange>>(changes =>
-                    {
-                        changes.Cast<IChangeValue<TValue>>().ForEach(change =>
-                        {
-                            //Handle Errors
-                            if (_isDisposed) OnError(new InvalidOperationException($"{nameof(EntityValue)} is already disposed"));
-
-                            if (change.ChangeType.HasFlag(ChangeType.Modify))
-                            {
-                                var value = change.Value is TValue val ? val : default!;
-                                if (!EqualityComparer<TValue>.Default.Equals(_subject.Value, value))
-                                {
-                                    _subject.OnNext((TValue)change.Value);
-                                }
-                            }
-
-                            if (change.ChangeType.HasFlag(ChangeType.Complete))
-                            {
-                                _subject.OnCompleted();
-                            }
-                        });
-                    }),
-                    _subject.DistinctUntilChanged()
-                    .Publish(pub =>
-                        pub.Take(1).Select(value => ChangeValue<TValue>.Create(ChangeType.Create, value).Yield())
-                        .Merge(
-                            pub.Skip(1).Select(value => ChangeValue<TValue>.Create(ChangeType.Modify, value).Yield())))
-                    .Concat(Observable.Return(ChangeValue<TValue>.Create(ChangeType.Complete, _subject.Value).Yield())));
+            _subject = subject;
         }
-
         TValue IEntityValue<TValue>.Value => _subject.Value;
 
         public override object? Value => _subject.Value;
-
-        public override ISubject<IEnumerable<IChange>> Changes { get; }
 
         public override void OnCompleted() { _subject.OnCompleted(); }
 
@@ -93,12 +62,10 @@ namespace Awesomni.Codes.FlowRx
 
         public void OnNext(TValue value)
         {
-            if (_isDisposed) throw new InvalidOperationException($"{nameof(EntityValue)} is already disposed");
+            if (_isDisposed) throw new InvalidOperationException($"{nameof(EntityValue<TValue>)} is already disposed");
 
             _subject.OnNext(value);
         }
-
-        public IDisposable Subscribe(IObserver<TValue> observer) => _subject.Subscribe(observer);
 
         public override void Dispose()
         {
@@ -108,6 +75,28 @@ namespace Awesomni.Codes.FlowRx
 
         public override void OnNext(object? value) => OnNext((TValue) value!);
 
-        public override IDisposable Subscribe(IObserver<object?> observer) => _subject.Select(i => (object?)i).Subscribe(observer);
+        protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
+        => Observer.Create<IEnumerable<IChange>>(changes =>
+        {
+            changes.Cast<IChangeValue<TValue>>().ForEach(change =>
+            {
+                //Handle Errors
+                if (_isDisposed) OnError(new InvalidOperationException($"{nameof(EntityValue<TValue>)} is already disposed"));
+
+                if (change.ChangeType.HasFlag(ChangeType.Modify))
+                {
+                    var value = change.Value is TValue val ? val : default!;
+                    if (!EqualityComparer<TValue>.Default.Equals(_subject.Value, value))
+                    {
+                        _subject.OnNext((TValue)change.Value);
+                    }
+                }
+
+                if (change.ChangeType.HasFlag(ChangeType.Complete))
+                {
+                    _subject.OnCompleted();
+                }
+            });
+        });
     }
 }

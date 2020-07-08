@@ -18,10 +18,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityDirectoryBase<TKey> : EntityDictionary<TKey, IEntity>, IEntityDirectory<object>
-    {
-        static EntityDirectoryBase() => Entity.InterfaceToClassTypeMap[typeof(IEntityDirectory<>)] = typeof(EntityDirectory<>);
-    }
+    public abstract class EntityDirectoryBase<TKey> : EntityDictionary<TKey, IEntity>, IEntityDirectory<object> { }
     public class EntityDirectory<TKey> : EntityDirectoryBase<TKey>, IEntityDirectory<TKey>
     {
         public static new IEntityDirectory<TKey> Create() => new EntityDirectory<TKey>();

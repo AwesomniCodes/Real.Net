@@ -12,7 +12,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Linq;
     using System.Reactive.Subjects;
 
-    public interface IEntityValue<TValue> : IEntity, ISubject<TValue>
+    public interface IEntityValue<TValue> : IEntityObservable<TValue>, ISubject<TValue>
     {
         TValue Value { get; }
     }
