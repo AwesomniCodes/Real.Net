@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="EntityValue.cs" project="FlowRx" solution="FlowRx" />
+//    file="EntitySubject.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -16,9 +16,9 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityValueBase<TValue> : EntityObservable<TValue>, IEntityValue<object?>
+    public abstract class EntitySubjectBase<TValue> : EntityObservable<TValue>, IEntitySubject<object?>
     {
-        protected EntityValueBase(BehaviorSubject<TValue> subject) : base(subject) { }
+        protected EntitySubjectBase(BehaviorSubject<TValue> subject) : base(subject) { }
 
         public abstract object? Value { get; }
 
@@ -31,20 +31,20 @@ namespace Awesomni.Codes.FlowRx
         public abstract void OnNext(object? value);
     }
 
-    public class EntityValue<TValue> : EntityValueBase<TValue>, IEntityValue<TValue>
+    public class EntitySubject<TValue> : EntitySubjectBase<TValue>, IEntitySubject<TValue>
     {
         private readonly BehaviorSubject<TValue> _subject;
-        public static IEntityValue<TValue> Create(TValue initialValue = default) => new EntityValue<TValue>(initialValue);
+        public static IEntitySubject<TValue> Create(TValue initialValue = default) => new EntitySubject<TValue>(initialValue);
 
         private bool _isDisposed;
 
-        protected EntityValue(TValue initialValue = default) : this(new BehaviorSubject<TValue>(initialValue)) { }
+        protected EntitySubject(TValue initialValue = default) : this(new BehaviorSubject<TValue>(initialValue)) { }
 
-        protected EntityValue(BehaviorSubject<TValue> subject) : base(subject)
+        protected EntitySubject(BehaviorSubject<TValue> subject) : base(subject)
         {
             _subject = subject;
         }
-        TValue IEntityValue<TValue>.Value => _subject.Value;
+        TValue IEntitySubject<TValue>.Value => _subject.Value;
 
         public override object? Value => _subject.Value;
 
@@ -62,7 +62,7 @@ namespace Awesomni.Codes.FlowRx
 
         public void OnNext(TValue value)
         {
-            if (_isDisposed) throw new InvalidOperationException($"{nameof(EntityValue<TValue>)} is already disposed");
+            if (_isDisposed) throw new InvalidOperationException($"{nameof(EntitySubject<TValue>)} is already disposed");
 
             _subject.OnNext(value);
         }
@@ -78,10 +78,10 @@ namespace Awesomni.Codes.FlowRx
         protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
         => Observer.Create<IEnumerable<IChange>>(changes =>
         {
-            changes.Cast<IChangeValue<TValue>>().ForEach(change =>
+            changes.Cast<IChangeSubject<TValue>>().ForEach(change =>
             {
                 //Handle Errors
-                if (_isDisposed) OnError(new InvalidOperationException($"{nameof(EntityValue<TValue>)} is already disposed"));
+                if (_isDisposed) OnError(new InvalidOperationException($"{nameof(EntitySubject<TValue>)} is already disposed"));
 
                 if (change.ChangeType.HasFlag(ChangeType.Modify))
                 {

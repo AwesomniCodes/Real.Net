@@ -33,7 +33,7 @@ namespace Awesomni.Codes.FlowRx
                 {typeof(IEntityDictionary<,>), typeof(EntityDictionary<,>) },
                 {typeof(IEntityList<>), typeof(EntityList<>) },
                 {typeof(IEntityObservable<>), typeof(EntityObservable<>) },
-                {typeof(IEntityValue<>), typeof(EntityValue<>) },
+                {typeof(IEntitySubject<>), typeof(EntitySubject<>) },
             };
 
         private static IEntity InvokeGenericCreation(Type entityGenericDefinition, Type[] genericSubtypes, params object?[] arguments)
@@ -47,7 +47,7 @@ namespace Awesomni.Codes.FlowRx
             var genericArguments = objectType.GetGenericArguments();
             var genericDefinition = objectType.GetGenericTypeDefinition();
             
-            return typeof(IEntity).IsAssignableFrom(genericArguments[0]) && typeof(IEntityValue<>).IsAssignableFrom(genericDefinition)
+            return typeof(IEntity).IsAssignableFrom(genericArguments[0]) && typeof(IEntitySubject<>).IsAssignableFrom(genericDefinition)
                     ? Create(genericArguments[0], new object[] { } )
                     : InvokeGenericCreation(InterfaceToClassTypeMap[objectType.GetGenericTypeDefinition()], objectType.GetGenericArguments(), constructorArgs)
                         ?? throw new ArgumentException("The type is unknown", nameof(objectType));

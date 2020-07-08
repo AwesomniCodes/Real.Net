@@ -42,11 +42,11 @@ namespace Awesomni.Codes.FlowRx.Dynamic
                     {
                         var genericArguments = propertyInfo.PropertyType.GetGenericArguments();
 
-                        var correspondingEntityValueType = typeof(IEntityValue<>).MakeGenericType(genericArguments[0]);
+                        var correspondingEntityValueType = typeof(IEntitySubject<>).MakeGenericType(genericArguments[0]);
                         //Check for Subject assignability and add as EntityValue
                         if (propertyInfo.PropertyType.IsAssignableFrom(correspondingEntityValueType))
                         {
-                            propertyDelegate = Entity.Create(typeof(IEntityValue<>).MakeGenericType(genericArguments[0]), genericArguments.First().GetDefault());
+                            propertyDelegate = Entity.Create(typeof(IEntitySubject<>).MakeGenericType(genericArguments[0]), genericArguments.First().GetDefault());
                         }
                         else
                         {
@@ -67,7 +67,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic
                     else
                     {
                         //Common base value gets added as a EntityValue
-                        propertyDelegate = Entity.Create(typeof(IEntityValue<>).MakeGenericType(propertyInfo.PropertyType), propertyInfo.PropertyType.GetDefault());
+                        propertyDelegate = Entity.Create(typeof(IEntitySubject<>).MakeGenericType(propertyInfo.PropertyType), propertyInfo.PropertyType.GetDefault());
                     }
 
                     Add(propertyInfo.Name, propertyDelegate);

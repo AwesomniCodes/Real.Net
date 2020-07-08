@@ -32,9 +32,9 @@ namespace Awesomni.Codes.FlowRx.Utility
         {
             var keyChain = (curKeyChain ?? Enumerable.Empty<object>()).ToList();
 
-            if (change is IChangeValue<object?> valueChange)
+            if (change is IChangeSubject<object?> subjectChange)
             {
-                yield return (keyChain, valueChange.ChangeType, valueChange.Value);
+                yield return (keyChain, subjectChange.ChangeType, subjectChange.Value);
             }
 
             if (change is IChangeDictionary<object?, IEntity> dictionaryChange)

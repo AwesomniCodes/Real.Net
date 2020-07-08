@@ -18,14 +18,14 @@ namespace Awesomni.Codes.FlowRx.Tests
         {
             var root = EntityDirectory<string>.Create();
             var subFolder = root.GetOrAdd("TestDirectory", EntityDirectory<string>.Create);
-            var testString = subFolder.GetOrAdd("TestString", () => EntityValue<string>.Create("TestString"));
-            var testInt = subFolder.GetOrAdd("TestInt", () => EntityValue<int>.Create(23));
-            var testDouble = subFolder.GetOrAdd("TestDouble", () => EntityValue<double>.Create(23.0));
-            var testBool = subFolder.GetOrAdd("TestBool", () => EntityValue<bool>.Create(true));
-            var testList = subFolder.GetOrAdd("TestList", () => EntityList<IEntityValue<int>>.Create());
-            testList.Add(EntityValue<int>.Create(1));
-            testList.Add(EntityValue<int>.Create(10));
-            testList.Add(EntityValue<int>.Create(15));
+            var testString = subFolder.GetOrAdd("TestString", () => EntitySubject<string>.Create("TestString"));
+            var testInt = subFolder.GetOrAdd("TestInt", () => EntitySubject<int>.Create(23));
+            var testDouble = subFolder.GetOrAdd("TestDouble", () => EntitySubject<double>.Create(23.0));
+            var testBool = subFolder.GetOrAdd("TestBool", () => EntitySubject<bool>.Create(true));
+            var testList = subFolder.GetOrAdd("TestList", () => EntityList<IEntitySubject<int>>.Create());
+            testList.Add(EntitySubject<int>.Create(1));
+            testList.Add(EntitySubject<int>.Create(10));
+            testList.Add(EntitySubject<int>.Create(15));
             return root;
         }
 
@@ -59,10 +59,10 @@ namespace Awesomni.Codes.FlowRx.Tests
         {
             var root = GetCommonDirectory();
             var subFolder = root.Get<IEntityDirectory<string>>("TestDirectory").NullThrow();
-            var testString = subFolder.Get<IEntityValue<string>>("TestString").NullThrow();
-            var testInt = subFolder.Get<IEntityValue<int>>("TestInt").NullThrow();
-            var testDouble = subFolder.Get<IEntityValue<double>>("TestDouble").NullThrow();
-            var testBool = subFolder.Get<IEntityValue<bool>>("TestBool").NullThrow();
+            var testString = subFolder.Get<IEntitySubject<string>>("TestString").NullThrow();
+            var testInt = subFolder.Get<IEntitySubject<int>>("TestInt").NullThrow();
+            var testDouble = subFolder.Get<IEntitySubject<double>>("TestDouble").NullThrow();
+            var testBool = subFolder.Get<IEntitySubject<bool>>("TestBool").NullThrow();
 
             testInt.OnNext(20);
             testInt.OnCompleted();

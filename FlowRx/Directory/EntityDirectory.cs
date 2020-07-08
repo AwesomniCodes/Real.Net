@@ -25,7 +25,7 @@ namespace Awesomni.Codes.FlowRx
 
         protected EntityDirectory() { }
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(ChangeValue<IEntityDirectory<TKey>>.Create(ChangeType.Create).Yield())
+            => Observable.Return(ChangeSubject<IEntityDirectory<TKey>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
                     .MergeMany(kE =>

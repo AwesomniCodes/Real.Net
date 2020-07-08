@@ -51,7 +51,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
                 }
             }
 
-            if (entity is IEntityValue<object> entityValue)
+            if (entity is IEntitySubject<object> entityValue)
             {
                 if(entityValue.GetType().GetGenericArguments().First() == propertyInfo.PropertyType)
                 {
@@ -79,10 +79,10 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
                 var maybeEntity = _dynamic.Get(key);
                 if (maybeEntity == null)
                 {
-                    _dynamic.Add(key, Entity.Create(typeof(IEntityValue<>).MakeGenericType(value.GetType()), value));
+                    _dynamic.Add(key, Entity.Create(typeof(IEntitySubject<>).MakeGenericType(value.GetType()), value));
                     return true;
                 }
-                else if (maybeEntity is IEntityValue<object> entityValue)
+                else if (maybeEntity is IEntitySubject<object> entityValue)
                 {
                     entityValue.OnNext(value);
                     return true;

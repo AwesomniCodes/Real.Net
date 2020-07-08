@@ -9,15 +9,15 @@ namespace Awesomni.Codes.FlowRx
     using System;
     using System.Collections.Generic;
 
-    public interface IChangeValue<TValue> : IChange<IEntityValue<TValue>>
+    public interface IChangeSubject<TValue> : IChange<IEntitySubject<TValue>>
     {
         ChangeType ChangeType { get; }
         TValue Value { get; }
     }
 
-    public abstract class ChangeValue : IChangeValue<object?>
+    public abstract class ChangeSubject : IChangeSubject<object?>
     {
-        protected ChangeValue(ChangeType changeType, object? value = null)
+        protected ChangeSubject(ChangeType changeType, object? value = null)
         {
             ChangeType = changeType;
             Value = value;
@@ -28,12 +28,12 @@ namespace Awesomni.Codes.FlowRx
         public object? Value { get; }
     }
 
-    public class ChangeValue<TValue> : ChangeValue, IChangeValue<TValue>
+    public class ChangeSubject<TValue> : ChangeSubject, IChangeSubject<TValue>
     {
-        public static IChangeValue<TValue> Create(ChangeType changeType, TValue value = default)
-            => new ChangeValue<TValue>(changeType, value);
+        public static IChangeSubject<TValue> Create(ChangeType changeType, TValue value = default)
+            => new ChangeSubject<TValue>(changeType, value);
 
-        protected ChangeValue(ChangeType changeType, TValue value = default) : base(changeType, value) { }
+        protected ChangeSubject(ChangeType changeType, TValue value = default) : base(changeType, value) { }
 
         public new TValue Value => base.Value is TValue tValue ? tValue : default!;
 

@@ -34,7 +34,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
             result = (_syntaxOptions.HasFlag(SyntaxOptions.AutoCreate)
                 ? typeof(TEntity).IsAssignableFrom(type)
                     ? _dictionary.GetOrAdd(name, () => (TEntity) Entity.Create(type))
-                    : _dictionary.GetOrAdd(name, () => (TEntity) Entity.Create(typeof(IEntityValue<>).MakeGenericType(type)))
+                    : _dictionary.GetOrAdd(name, () => (TEntity) Entity.Create(typeof(IEntitySubject<>).MakeGenericType(type)))
                 : _dictionary.Get(name))
                 ?.AsDynamic();
             return result != null;
@@ -55,10 +55,10 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
                 var maybeEntity = _dictionary.Get(key);
                 if (maybeEntity == null)
                 {
-                    _dictionary.Add(key, (TEntity) Entity.Create(typeof(IEntityValue<>).MakeGenericType(value.GetType()), value));
+                    _dictionary.Add(key, (TEntity) Entity.Create(typeof(IEntitySubject<>).MakeGenericType(value.GetType()), value));
                     return true;
                 }
-                else if (maybeEntity is IEntityValue<object> entityValue)
+                else if (maybeEntity is IEntitySubject<object> entityValue)
                 {
                     entityValue.OnNext(value);
                     return true;

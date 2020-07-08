@@ -8,9 +8,9 @@ namespace Awesomni.Codes.FlowRx.Tests
 {
     public interface ICommonSubdirectoryEntityValues
     {
-        public IEntityValue<string> TestString { get; set; }
-        public IEntityValue<int> TestInt { get; set; }
-        public IEntityValue<double> TestDouble { get; set; }
-        public IEntityValue<bool> TestBool { get; set; }
+        public IEntitySubject<string> TestString { get; set; }
+        public IEntitySubject<int> TestInt { get; set; }
+        public IEntitySubject<double> TestDouble { get; set; }
+        public IEntitySubject<bool> TestBool { get; set; }
     }
 }

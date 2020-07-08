@@ -9,26 +9,17 @@ namespace Awesomni.Codes.FlowRx.Dynamic
     public static class EntityDynamicExtensions
     {
 
-        public static dynamic AsDynamic<TEntity>(this TEntity entity, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : IEntity
-        {
-            switch (entity)
+        public static dynamic AsDynamic<TEntity>(this TEntity entity, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : IEntity =>
+            entity switch
             {
-                case IEntityDynamic<object> dynamicEntity:
-                    return dynamicEntity.AsDynamic(syntaxOptions);
-                case IEntityDirectory<object> directory:
-                    return directory.AsDynamic(syntaxOptions);
-                case IEntityValue<object?> value:
-                    return value.AsDynamic(syntaxOptions);
-                case IEntityList<IEntity> list:
-                    return list.AsDynamic(syntaxOptions);
-                case IEntityDictionary<object, IEntity> dictionary:
-                    return dictionary.AsDynamic(syntaxOptions);
-                case IEntityObservable<object> observable:
-                    return observable.AsDynamic(syntaxOptions);
-                default:
-                    throw new ArgumentException($"Unknown {nameof(IEntity)} provided");
-            }
-        }
+                IEntityDynamic<object> dynamicEntity => dynamicEntity.AsDynamic(syntaxOptions),
+                IEntityDirectory<object> directory => directory.AsDynamic(syntaxOptions),
+                IEntityDictionary<object, IEntity> dictionary => dictionary.AsDynamic(syntaxOptions),
+                IEntityList<IEntity> list => list.AsDynamic(syntaxOptions),
+                IEntitySubject<object?> subject => subject.AsDynamic(syntaxOptions),
+                IEntityObservable<object> observable => observable.AsDynamic(syntaxOptions),
+                _ => throw new ArgumentException($"Unknown {nameof(IEntity)} provided")
+            };
 
         public static dynamic AsDynamic<TInterface>(this IEntityDynamic<TInterface> dynamicEntity, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TInterface : class
             => new EntityDynamicDynamicActor<TInterface>(dynamicEntity, syntaxOptions);
@@ -41,8 +32,8 @@ namespace Awesomni.Codes.FlowRx.Dynamic
         public static dynamic AsDynamic<TKey, TEntity>(this IEntityDictionary<TKey, TEntity> dictionary, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess) where TEntity : class, IEntity
             => new EntityDictionaryDynamicActor<TKey, TEntity>(dictionary, syntaxOptions);
 
-        public static dynamic AsDynamic<TValue>(this IEntityValue<TValue> value, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
-            => new EntityValueDynamicActor<TValue>(value, syntaxOptions);
+        public static dynamic AsDynamic<TValue>(this IEntitySubject<TValue> subject, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
+            => new EntityValueDynamicActor<TValue>(subject, syntaxOptions);
 
         public static dynamic AsDynamic<TValue>(this IEntityObservable<TValue> observable, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
             => new EntityObservableDynamicActor<TValue>(observable, syntaxOptions);

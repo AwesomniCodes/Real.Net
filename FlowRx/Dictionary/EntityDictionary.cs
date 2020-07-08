@@ -63,7 +63,7 @@ namespace Awesomni.Codes.FlowRx
                 .SelectMany(childChange =>
                                 childChange
                                 .Changes
-                                .OfType<IChangeValue<object?>>()
+                                .OfType<IChangeSubject<object?>>()
                                 .Where(ccI => ccI.ChangeType == ChangeType.Complete)
                                 .Select(_ => childChange.Key));
 
@@ -79,7 +79,7 @@ namespace Awesomni.Codes.FlowRx
             {
                 changes.ForEach(change =>
                 {
-                    if (change is IChangeValue<TEntity>)
+                    if (change is IChangeSubject<TEntity>)
                     {
                         //TODO: The whole dictionary gets replaced
                         //item.OnNext(change);
@@ -88,7 +88,7 @@ namespace Awesomni.Codes.FlowRx
                     {
                         childChange.Changes.ForEach(innerChange =>
                         {
-                            if (innerChange is IChangeValue<object?> innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
+                            if (innerChange is IChangeSubject<object?> innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
                             {
                                 var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single()!;
 
@@ -104,7 +104,7 @@ namespace Awesomni.Codes.FlowRx
             });
 
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(ChangeValue<IEntityDictionary<TKey, TEntity>>.Create(ChangeType.Create).Yield())
+            => Observable.Return(ChangeSubject<IEntityDictionary<TKey, TEntity>>.Create(ChangeType.Create).Yield())
                .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
                     .MergeMany(kE =>

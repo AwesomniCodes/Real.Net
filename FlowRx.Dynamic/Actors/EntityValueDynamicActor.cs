@@ -20,18 +20,18 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
     {
         private static readonly IDictionary<string, PropertyInfo> _properties;
         private static readonly IDictionary<string, MethodInfo> _methods;
-        private readonly IEntityValue<TValue> _value;
+        private readonly IEntitySubject<TValue> _value;
 
-        internal EntityValueDynamicActor(IEntityValue<TValue> value, SyntaxOptions syntaxOptions) : base(value, syntaxOptions)
+        internal EntityValueDynamicActor(IEntitySubject<TValue> subject, SyntaxOptions syntaxOptions) : base(subject, syntaxOptions)
         {
-            _value = value;
+            _value = subject;
             //TODO iterate over T properties and fill Expando property and Directory
         }
 
         static EntityValueDynamicActor()
         {
-            _properties = typeof(IEntityValue<>).GetProperties(BindingFlags.Instance | BindingFlags.Public).ToDictionary(property => property.Name);
-            _methods = typeof(IEntityValue<>).GetMethods(BindingFlags.Instance | BindingFlags.Public).ToDictionary(method => method.Name);
+            _properties = typeof(IEntitySubject<>).GetProperties(BindingFlags.Instance | BindingFlags.Public).ToDictionary(property => property.Name);
+            _methods = typeof(IEntitySubject<>).GetMethods(BindingFlags.Instance | BindingFlags.Public).ToDictionary(method => method.Name);
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object? result)
