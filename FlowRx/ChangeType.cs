@@ -13,8 +13,6 @@ namespace Awesomni.Codes.FlowRx
     {
         Create = 1,
         Complete = 2,
-        Connect = 4,
-        Disconnect = 8,
         Modify = 16,
         Error = 32,
     }
