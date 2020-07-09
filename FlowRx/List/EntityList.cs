@@ -133,16 +133,16 @@ namespace Awesomni.Codes.FlowRx
         public void Add(TEntity item) => _item.Value.Add(item);
         public override void Clear() => _item.Value.Clear();
         public override bool Contains(object value) => value is TEntity entity ? Contains(entity) : false;
-        public override bool Contains(IEntity item) => throw new NotImplementedException();
+        public override bool Contains(IEntity item) => item is TEntity entity ? Contains(entity) : false;
         public bool Contains(TEntity item) => _item.Value.Items.Contains(item);
         public override void CopyTo(Array array, int index)
         {
-            if (!(array is TEntity[] tdArray)) throw new ArgumentException("array");
+            if (!(array is TEntity[] tdArray)) throw new ArgumentException(nameof(array));
             CopyTo(tdArray, index);
         }
-        public override void CopyTo(IEntity[] array, int arrayIndex) => throw new NotImplementedException();
+        public override void CopyTo(IEntity[] array, int arrayIndex) => _item.Value.Items.Select((kE, index) => (kE, index)).ForEach(item => array[arrayIndex + item.index] = item.kE);
         public void CopyTo(TEntity[] array, int arrayIndex) => _item.Value.Items.Select((kE, index) => (kE, index)).ForEach(item => array[arrayIndex + item.index] = item.kE);
-        public override IEnumerator<IEntity> GetEnumerator() => throw new NotImplementedException();
+        public override IEnumerator<IEntity> GetEnumerator() => @this.GetEnumerator();
         public override int IndexOf(object value) => value is TEntity entity ? IndexOf(entity) : -1;
         public override int IndexOf(IEntity item) => item is TEntity entity ? IndexOf(entity) : -1;
         public int IndexOf(TEntity item) => _item.Value.Items.IndexOf(item);
