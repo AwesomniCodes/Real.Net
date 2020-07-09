@@ -25,13 +25,13 @@ namespace Awesomni.Codes.FlowRx.Utility
         }
 
         public static IObserver<TSource> Transform<TSource, TResult>(
-            this IObserver<TResult> observable,
+            this IObserver<TResult> observer,
             Func<TSource, TResult> transform)
         {
             return Observer.Create<TSource>(
-                source => { observable.OnNext(transform(source)); },
-                observable.OnError,
-                observable.OnCompleted);
+                source => { observer.OnNext(transform(source)); },
+                observer.OnError,
+                observer.OnCompleted);
         }
 
 
