@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="EntitySubjectListActor.cs" project="FlowRx" solution="FlowRx" />
+//    file="EntityListExtension.cs" project="FlowRx" solution="FlowRx" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -21,97 +21,94 @@ namespace Awesomni.Codes.FlowRx
     public static class EntityListExtension
     {
         public static IList<TValue> AsValueList<TValue>(this IEntityList<IEntitySubject<TValue>> list) => new EntitySubjectListActor<TValue>(list);
-    }
 
-    internal class EntitySubjectListActor<TValue> : IList<TValue>, IList, IReadOnlyCollection<TValue>
-    {
-        private readonly IEntityList<IEntitySubject<TValue>> _list;
-
-        internal EntitySubjectListActor(IEntityList<IEntitySubject<TValue>> list) => _list = list;
-
-        public int Count => _list.Count;
-
-        public bool IsReadOnly => _list.IsReadOnly;
-
-        bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
-
-        bool IList.IsReadOnly => ((IList)_list).IsReadOnly;
-
-        int ICollection.Count => _list.Count;
-
-        bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
-
-        object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;
-
-        object IList.this[int index] { get => _list[index].Value!; set => _list[index].OnNext((TValue)value); }
-        public TValue this[int index] { get => _list[index].Value; set => _list[index].OnNext(value); }
-
-        public int IndexOf(TValue item)
-            => _list.Select((subject, index) => new { Subject = subject, Index = index }).FirstOrDefault(si => EqualityComparer<TValue>.Default.Equals(si.Subject.Value, item))?.Index ?? -1;
-
-        public void Insert(int index, TValue item)
-            => _list.Insert(index, EntitySubject<TValue>.Create(item));
-
-        public void RemoveAt(int index)
-            => _list.RemoveAt(index);
-
-        public void Add(TValue item)
-            => _list.Add(EntitySubject<TValue>.Create(item));
-
-
-        public void Clear()
-            => _list.Clear();
-
-        public bool Contains(TValue item)
-            => _list.Any(subject => EqualityComparer<TValue>.Default.Equals(subject.Value, item));
-
-
-
-        public void CopyTo(TValue[] array, int arrayIndex)
-            => _list.Select((value, index) => (value, index)).ForEach(item => array[arrayIndex + item.index] = item.value.Value);
-
-        public bool Remove(TValue item)
+        private class EntitySubjectListActor<TValue> : IList<TValue>, IList, IReadOnlyCollection<TValue>
         {
-            var index = IndexOf(item);
-            if (index == -1)
-                return false;
+            private readonly IEntityList<IEntitySubject<TValue>> _list;
 
-            _list.RemoveAt(index);
-            return true;
-        }
+            internal EntitySubjectListActor(IEntityList<IEntitySubject<TValue>> list) => _list = list;
 
-        public IEnumerator<TValue> GetEnumerator()
-            => _list.Select(subject => subject.Value).GetEnumerator();
+            public int Count => _list.Count;
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            public bool IsReadOnly => _list.IsReadOnly;
 
-        int IList.Add(object value)
-        {
-            if (value is TValue tValue)
+            bool IList.IsFixedSize => ((IList)_list).IsFixedSize;
+
+            bool IList.IsReadOnly => ((IList)_list).IsReadOnly;
+
+            int ICollection.Count => _list.Count;
+
+            bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
+
+            object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;
+
+            object IList.this[int index] { get => _list[index].Value!; set => _list[index].OnNext((TValue)value); }
+            public TValue this[int index] { get => _list[index].Value; set => _list[index].OnNext(value); }
+
+            public int IndexOf(TValue item)
+                => _list.Select((subject, index) => new { Subject = subject, Index = index }).FirstOrDefault(si => EqualityComparer<TValue>.Default.Equals(si.Subject.Value, item))?.Index ?? -1;
+
+            public void Insert(int index, TValue item)
+                => _list.Insert(index, EntitySubject<TValue>.Create(item));
+
+            public void RemoveAt(int index)
+                => _list.RemoveAt(index);
+
+            public void Add(TValue item)
+                => _list.Add(EntitySubject<TValue>.Create(item));
+
+            public void Clear()
+                => _list.Clear();
+
+            public bool Contains(TValue item)
+                => _list.Any(subject => EqualityComparer<TValue>.Default.Equals(subject.Value, item));
+
+            public void CopyTo(TValue[] array, int arrayIndex)
+                => this.Select((value, index) => (value, index)).ForEach(item => array[arrayIndex + item.index] = item.value);
+
+            public bool Remove(TValue item)
             {
-                _list.Add(EntitySubject<TValue>.Create(tValue));
-                return _list.Count - 1;
+                var index = IndexOf(item);
+                if (index == -1)
+                    return false;
+
+                _list.RemoveAt(index);
+                return true;
             }
-            return -1;
-        }
 
-        void IList.Clear() => Clear();
+            public IEnumerator<TValue> GetEnumerator()
+                => _list.Select(subject => subject.Value).GetEnumerator();
 
-        bool IList.Contains(object value)
-            => value is TValue tValue && Contains(tValue);
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        int IList.IndexOf(object value) => value is TValue tValue ? IndexOf(tValue) : -1;
+            int IList.Add(object value)
+            {
+                if (value is TValue tValue)
+                {
+                    _list.Add(EntitySubject<TValue>.Create(tValue));
+                    return _list.Count - 1;
+                }
+                return -1;
+            }
 
-        void IList.Insert(int index, object value) => Insert(index, (TValue)value);
+            void IList.Clear() => Clear();
 
-        void IList.Remove(object value) => Remove((TValue)value);
+            bool IList.Contains(object value)
+                => value is TValue tValue && Contains(tValue);
 
-        void IList.RemoveAt(int index) => RemoveAt(index);
+            int IList.IndexOf(object value) => value is TValue tValue ? IndexOf(tValue) : -1;
 
-        void ICollection.CopyTo(Array array, int index)
-        {
-            if (!(array is TValue[] tdArray)) throw new ArgumentException(nameof(array));
-            CopyTo(tdArray, index);
+            void IList.Insert(int index, object value) => Insert(index, (TValue)value);
+
+            void IList.Remove(object value) => Remove((TValue)value);
+
+            void IList.RemoveAt(int index) => RemoveAt(index);
+
+            void ICollection.CopyTo(Array array, int index)
+            {
+                if (!(array is TValue[] tdArray)) throw new ArgumentException(nameof(array));
+                CopyTo(tdArray, index);
+            }
         }
     }
 }
