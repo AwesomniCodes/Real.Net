@@ -68,9 +68,7 @@ namespace Awesomni.Codes.FlowRx
 
 
         public void CopyTo(TValue[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
+            => _list.Select((value, index) => (value, index)).ForEach(item => array[arrayIndex + item.index] = item.value.Value);
 
         public bool Remove(TValue item)
         {
@@ -102,30 +100,18 @@ namespace Awesomni.Codes.FlowRx
         bool IList.Contains(object value)
             => value is TValue tValue && Contains(tValue);
 
-        int IList.IndexOf(object value)
-        {
-            throw new NotImplementedException();
-        }
+        int IList.IndexOf(object value) => value is TValue tValue ? IndexOf(tValue) : -1;
 
-        void IList.Insert(int index, object value)
-        {
-            throw new NotImplementedException();
-        }
+        void IList.Insert(int index, object value) => Insert(index, (TValue)value);
 
-        void IList.Remove(object value)
-        {
-            throw new NotImplementedException();
-        }
+        void IList.Remove(object value) => Remove((TValue)value);
 
-        void IList.RemoveAt(int index)
-        {
-            throw new NotImplementedException();
-        }
+        void IList.RemoveAt(int index) => RemoveAt(index);
 
         void ICollection.CopyTo(Array array, int index)
         {
-            throw new NotImplementedException();
+            if (!(array is TValue[] tdArray)) throw new ArgumentException(nameof(array));
+            CopyTo(tdArray, index);
         }
-
     }
 }
