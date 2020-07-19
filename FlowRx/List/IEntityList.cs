@@ -6,13 +6,11 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using Awesomni.Codes.FlowRx.Utility;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IEntityList<TEntity> : IEntity, IEnumerable<TEntity>, ICollection<TEntity>, IList<TEntity>, IReadOnlyCollection<TEntity> where TEntity : class, IEntity
-    {
-        new TEntity this[int index] { get; set; }
-    }
+    public interface IEntityList<TEntity> : IEntity, IList<TEntity> where TEntity : class, IEntity { }
 }

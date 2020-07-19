@@ -18,7 +18,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityList : Entity, IEntityList<IEntity>, IEnumerable, ICollection, IList
+    public abstract class EntityList : Entity, IEntityList<IEntity>, IReadOnlyCollection<IEntity>, IList
     {
         public abstract IEntity this[int index] { get; set; }
         object IList.this[int index] { get => this[index]; set => this[index] = (IEntity) value; }
@@ -45,7 +45,7 @@ namespace Awesomni.Codes.FlowRx
         public abstract void RemoveAt(int index);
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-    public class EntityList<TEntity> : EntityList, IEntityList<TEntity> where TEntity : class, IEntity
+    public class EntityList<TEntity> : EntityList, IEntityList<TEntity>, IReadOnlyCollection<TEntity> where TEntity : class, IEntity
     {
         public static IEntityList<TEntity> Create() => new EntityList<TEntity>();
         
@@ -132,8 +132,8 @@ namespace Awesomni.Codes.FlowRx
         public override void Add(IEntity item) => @this.Add((TEntity)item);
         public void Add(TEntity item) => _item.Value.Add(item);
         public override void Clear() => _item.Value.Clear();
-        public override bool Contains(object value) => value is TEntity entity ? Contains(entity) : false;
-        public override bool Contains(IEntity item) => item is TEntity entity ? Contains(entity) : false;
+        public override bool Contains(object value) => value is TEntity entity && Contains(entity);
+        public override bool Contains(IEntity item) => item is TEntity entity && Contains(entity);
         public bool Contains(TEntity item) => _item.Value.Items.Contains(item);
         public override void CopyTo(Array array, int index)
         {
@@ -159,8 +159,8 @@ namespace Awesomni.Codes.FlowRx
         public override int Count => _item.Value.Count;
         public override bool IsSynchronized => false;
         public override object SyncRoot => _syncRoot ?? (_syncRoot = new object());
-        TEntity IList<TEntity>.this[int index] { get => @this[index]; set => @this[index] = value; }
-        TEntity IEntityList<TEntity>.this[int index]
+
+        TEntity IList<TEntity>.this[int index]
         {
             get => _item.Value.Items.ElementAt(index);
             set => _item.Value.ReplaceAt(index, value);

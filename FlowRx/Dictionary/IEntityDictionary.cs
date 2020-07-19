@@ -6,13 +6,13 @@
 
 namespace Awesomni.Codes.FlowRx
 {
+    using Awesomni.Codes.FlowRx.Utility;
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Reactive.Subjects;
 
-    public interface IEntityDictionary<TKey, TEntity> : IEntity, IEnumerable, IEnumerable<TEntity>, ICollection<KeyValuePair<TKey, TEntity>>, IEnumerable<KeyValuePair<TKey, TEntity>>, IDictionary<TKey, TEntity>,
-        IReadOnlyCollection<KeyValuePair<TKey, TEntity>>, IReadOnlyDictionary<TKey, TEntity> where TEntity : class, IEntity
+    public interface IEntityDictionary<TKey, TEntity> : IEntity, IDictionary<TKey, TEntity> where TEntity : class, IEntity
     {
         TEntity GetOrAdd(TKey key, Func<TEntity> creator)
         {

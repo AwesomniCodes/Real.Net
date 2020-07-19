@@ -18,7 +18,7 @@ namespace Awesomni.Codes.FlowRx
     using System.Reactive.Subjects;
     using System.Reflection;
 
-    public abstract class EntityDictionary : Entity, IEntityDictionary<object, IEntity>
+    public abstract class EntityDictionary : Entity, IEntityDictionary<object, IEntity>, IReadOnlyDictionary<object, IEntity>, IReadOnlyCollection<KeyValuePair<object, IEntity>>
     {
         public abstract IEntity this[object key] { get; set; }
         public abstract ICollection<object> Keys { get; }
@@ -41,10 +41,9 @@ namespace Awesomni.Codes.FlowRx
 
         IEnumerable<object> IReadOnlyDictionary<object, IEntity>.Keys => Keys;
         IEnumerable<IEntity> IReadOnlyDictionary<object, IEntity>.Values => Values;
-        IEnumerator<IEntity> IEnumerable<IEntity>.GetEnumerator() => ((IEnumerable<KeyValuePair<object, IEntity>>)this).Select(kvp => kvp.Value).GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-    public class EntityDictionary<TKey, TEntity> : EntityDictionary, IEntityDictionary<TKey, TEntity> where TEntity : class, IEntity
+    public class EntityDictionary<TKey, TEntity> : EntityDictionary, IEntityDictionary<TKey, TEntity>, IReadOnlyDictionary<TKey, TEntity>, IReadOnlyCollection<KeyValuePair<TKey, TEntity>> where TEntity : class, IEntity
     {
         public static IEntityDictionary<TKey, TEntity> Create() => new EntityDictionary<TKey, TEntity>();
         
@@ -137,7 +136,6 @@ namespace Awesomni.Codes.FlowRx
             => _item.Value.Lookup(key).ValueOrDefault().Entity;
         public override IEnumerator<KeyValuePair<object, IEntity>> GetEnumerator() => _item.Value.Items.Select(kE => KeyValuePair.Create<object, IEntity>(kE.Key!, kE.Entity)).GetEnumerator();
         IEnumerator<KeyValuePair<TKey, TEntity>> IEnumerable<KeyValuePair<TKey, TEntity>>.GetEnumerator() => _item.Value.Items.Select(kE => KeyValuePair.Create(kE.Key, kE.Entity)).GetEnumerator();
-        IEnumerator<TEntity> IEnumerable<TEntity>.GetEnumerator() => _item.Value.Items.Select(kE => kE.Entity).GetEnumerator();
         public override void Move(object sourceKey, object destinationKey) => Move((TKey)sourceKey, (TKey)destinationKey);
         public void Move(TKey sourceKey, TKey destinationKey) => throw new NotImplementedException();
         public override bool Remove(object key) => Remove((TKey)key);
