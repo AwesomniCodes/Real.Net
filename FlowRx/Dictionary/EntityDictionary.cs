@@ -63,7 +63,7 @@ namespace Awesomni.Codes.FlowRx
                                 childChange
                                 .Changes
                                 .OfType<IChangeSubject<object?>>()
-                                .Where(ccI => ccI.ChangeType == ChangeType.Complete)
+                                .Where(ccI => ccI.ChangeType == ChangeType.Completion)
                                 .Select(_ => childChange.Key));
 
                 completedKeys.ForEach(key =>
@@ -87,7 +87,7 @@ namespace Awesomni.Codes.FlowRx
                     {
                         childChange.Changes.ForEach(innerChange =>
                         {
-                            if (innerChange is IChangeSubject<object?> innerValueChange && innerValueChange.ChangeType == ChangeType.Create)
+                            if (innerChange is IChangeSubject<object?> innerValueChange && innerValueChange.ChangeType == ChangeType.Definition)
                             {
                                 var changeType = innerChange.GetType().GetTypesIfImplemented(typeof(IChange<>)).Last().GetGenericArguments().Single()!;
 
@@ -103,7 +103,7 @@ namespace Awesomni.Codes.FlowRx
             });
 
         protected override IObservable<IEnumerable<IChange>> CreateObservableForChangesSubject()
-            => Observable.Return(ChangeSubject<IEntityDictionary<TKey, TEntity>>.Create(ChangeType.Create).Yield())
+            => Observable.Return(ChangeSubject<IEntityDictionary<TKey, TEntity>>.Create(ChangeType.Definition).Yield())
                .Concat<IEnumerable<IChange<IEntity>>>(
                     _item.Switch()
                     .MergeMany(kE =>

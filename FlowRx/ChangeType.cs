@@ -11,9 +11,9 @@ namespace Awesomni.Codes.FlowRx
     [Flags]
     public enum ChangeType : int
     {
-        Create = 1,
-        Complete = 2,
-        Modify = 16,
-        Error = 32,
+        Definition = 1,
+        Modification = 2,
+        Completion = 4,
+        Error = 8,
     }
 }

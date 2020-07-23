@@ -43,9 +43,10 @@ namespace Awesomni.Codes.FlowRx
             => _observable
                 .DistinctUntilChanged()
                 .Publish(pub =>
-                    pub.Take(1).Select(value => ChangeSubject<TValue>.Create(ChangeType.Create, value).Yield())
-                        .Merge(pub.Skip(1).Select(value => ChangeSubject<TValue>.Create(ChangeType.Modify, value).Yield())))
-                .Concat(Observable.Return(ChangeSubject<TValue>.Create(ChangeType.Complete).Yield()));
+                    pub.Take(1).Select(value => ChangeSubject<TValue>.Create(ChangeType.Definition, value).Yield())
+                        .Merge(pub.Skip(1).Select(value => ChangeSubject<TValue>.Create(ChangeType.Modification, value).Yield()))
+                        .Merge(pub.Select(value => value is IEntity entityValue ? entityValue.Changes : Observable.Empty<IEnumerable<IChange>>()).Switch()))
+                .Concat(Observable.Return(ChangeSubject<TValue>.Create(ChangeType.Completion).Yield()));
 
         public IDisposable Subscribe(IObserver<TValue> observer) => _observable.Subscribe(observer);
 

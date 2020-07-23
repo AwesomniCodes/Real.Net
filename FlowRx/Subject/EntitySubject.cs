@@ -78,12 +78,12 @@ namespace Awesomni.Codes.FlowRx
         protected override IObserver<IEnumerable<IChange>> CreateObserverForChangesSubject()
         => Observer.Create<IEnumerable<IChange>>(changes =>
         {
-            changes.Cast<IChangeSubject<TValue>>().ForEach(change =>
+            changes.OfType<IChangeSubject<TValue>>().ForEach(change =>
             {
                 //Handle Errors
                 if (_isDisposed) OnError(new InvalidOperationException($"{nameof(EntitySubject<TValue>)} is already disposed"));
 
-                if (change.ChangeType.HasFlag(ChangeType.Modify))
+                if (change.ChangeType.HasFlag(ChangeType.Modification))
                 {
                     var value = change.Value is TValue val ? val : default!;
                     if (!EqualityComparer<TValue>.Default.Equals(_subject.Value, value))
@@ -92,7 +92,7 @@ namespace Awesomni.Codes.FlowRx
                     }
                 }
 
-                if (change.ChangeType.HasFlag(ChangeType.Complete))
+                if (change.ChangeType.HasFlag(ChangeType.Completion))
                 {
                     _subject.OnCompleted();
                 }
