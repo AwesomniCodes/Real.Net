@@ -32,8 +32,8 @@ namespace Awesomni.Codes.FlowRx
                 {typeof(IEntityDirectory<>), typeof(EntityDirectory<>) },
                 {typeof(IEntityDictionary<,>), typeof(EntityDictionary<,>) },
                 {typeof(IEntityList<>), typeof(EntityList<>) },
-                {typeof(IEntityObservable<>), typeof(EntityObservable<>) },
                 {typeof(IEntitySubject<>), typeof(EntitySubject<>) },
+                {typeof(IEntityObservable<>), typeof(EntityObservable<>) },
             };
 
         private static IEntity InvokeGenericCreation(Type entityGenericDefinition, Type[] genericSubtypes, params object?[] arguments)
