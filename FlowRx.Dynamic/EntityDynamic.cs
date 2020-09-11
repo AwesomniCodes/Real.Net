@@ -1,4 +1,5 @@
 ﻿using Awesomni.Codes.FlowRx;
+using Awesomni.Codes.FlowRx.Dynamic.Actors;
 using Awesomni.Codes.FlowRx.Utility;
 using ImpromptuInterface;
 using System;
@@ -18,9 +19,11 @@ namespace Awesomni.Codes.FlowRx.Dynamic
     }
     public class EntityDynamic<TInterface> : EntityDynamic, IEntityDynamic<TInterface> where TInterface : class
     {
+        private readonly IDictionary<string, object> _delegates = new Dictionary<string, object>();
         private IEntityDynamic<TInterface> @this => this;
         private readonly TInterface _value;
         public static new IEntityDynamic<TInterface> Create() => new EntityDynamic<TInterface>();
+
 
         public EntityDynamic()
         {
@@ -35,48 +38,76 @@ namespace Awesomni.Codes.FlowRx.Dynamic
         {
             typeof(TInterface)
                 .GetProperties(BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.Instance)
-                .ForEach(propertyInfo =>
+                .Select(propertyInfo => (PropertyInfo: propertyInfo, T: GetTypeEntityAndDelegate(propertyInfo.PropertyType)))
+                .ForEach(t =>
                 {
-                    IEntity propertyDelegate;
-                    if (propertyInfo.PropertyType.IsGenericType)
-                    {
-                        var genericArguments = propertyInfo.PropertyType.GetGenericArguments();
-
-                        var correspondingEntityValueType = typeof(IEntitySubject<>).MakeGenericType(genericArguments[0]);
-                        //Check for Subject assignability and add as EntityValue
-                        if (propertyInfo.PropertyType.IsAssignableFrom(correspondingEntityValueType))
-                        {
-                            propertyDelegate = Entity.Create(typeof(IEntitySubject<>).MakeGenericType(genericArguments[0]), genericArguments.First().GetDefault());
-                        }
-                        else
-                        {
-                            throw new Exception();
-                        }
-                        //Check for List assignability and add as EntityList
-                        //Check for Dict assignability and add as EntityDictionary
-
-
-                        //TODO: Decide for Generic Subtype needs again dynamic supplementation or can be directly added
-
-                    }
-                    else if(propertyInfo.PropertyType.IsInterface)
-                    {
-                        //Child itself should be a EntityDynamic
-                        propertyDelegate = Entity.Create(typeof(IEntityDynamic<>).MakeGenericType(propertyInfo.PropertyType));
-                    }
-                    else
-                    {
-                        //Common base value gets added as a EntityValue
-                        propertyDelegate = Entity.Create(typeof(IEntitySubject<>).MakeGenericType(propertyInfo.PropertyType), propertyInfo.PropertyType.GetDefault());
-                    }
-
-                    Add(propertyInfo.Name, propertyDelegate);
+                    Add(t.PropertyInfo.Name, t.T.Entity);
+                    _delegates.Add(t.PropertyInfo.Name, t.T.Delegate);
                 });
 
             
         }
 
+        private (object Delegate, IEntity Entity) GetTypeEntityAndDelegate(Type type, bool insideSubject = false)
+        {
+            var genericArguments = type.IsGenericType ? type.GetGenericArguments() : new Type[] { };
+            var genericDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : type;
+            Func<(object Delegate, IEntity Entity)> valueResolver = () => GetTypeEntityAndDelegate(genericArguments[0], true);
+            (object Delegate, IEntity Entity) t = default;
 
+            if (typeof(IEntity).IsAssignableFrom(genericDefinition))
+            {
+                if (genericDefinition.IsAssignableFrom(typeof(IEntitySubject<>)))
+                {
+                    t.Entity = Entity.Create(type, valueResolver().Delegate);
+                }
+                else
+                {
+                    t.Entity = Entity.Create(type);
+                }
+                t.Delegate = t.Entity;
+            }
+            else if (type.IsGenericType)
+            {
+                if (genericDefinition.IsAssignableFrom(typeof(ISubject<>)))
+                {
+                    t.Entity = Entity.Create(typeof(IEntitySubject<>).MakeGenericType(genericArguments), valueResolver().Delegate);
+                    t.Delegate = t.Entity;
+                }
+                else if (genericDefinition.IsAssignableFrom(typeof(IObservable<>)))
+                {
+                    t.Entity = Entity.Create(typeof(IEntityObservable<>).MakeGenericType(genericArguments), valueResolver().Delegate);
+                    t.Delegate = t.Entity;
+                }
+                else if (genericDefinition.IsAssignableFrom(typeof(IDictionary<,>)))
+                {
+                    t.Entity = Entity.Create(typeof(IEntityDictionary<,>).MakeGenericType(genericArguments[0], typeof(IEntitySubject<>).MakeGenericType(genericArguments[1])));
+                    t.Delegate = t.Entity.AsDynamic();
+                }
+                else if (genericDefinition.IsAssignableFrom(typeof(IList<>)))
+                {
+                    t.Entity = Entity.Create(typeof(IEntityList<>).MakeGenericType(typeof(IEntitySubject<>).MakeGenericType(genericArguments)));
+                    t.Delegate = t.Entity.AsDynamic();
+                }
+                else
+                {
+                    throw new InvalidOperationException($"The type {type} cannot be");
+                }
+            }
+            else if (type.IsInterface)
+            {
+                t.Entity = Entity.Create(typeof(IEntityDynamic<>).MakeGenericType(type));
+                t.Delegate = t.Entity.AsDynamic();
+            }
+
+            if(t == default)
+            {
+                throw new InvalidOperationException($"The type {type} cannot be");
+            }
+
+            //Common base value gets added as a EntitySubject
+            return insideSubject ? null : Entity.Create(typeof(IEntitySubject<>).MakeGenericType(type), type.GetDefault());
+        }
         public override object Value => _value;
         TInterface IEntityDynamic<TInterface>.Value => _value;
     }

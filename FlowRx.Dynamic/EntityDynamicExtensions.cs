@@ -33,7 +33,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic
             => new EntityDictionaryDynamicActor<TKey, TEntity>(dictionary, syntaxOptions);
 
         public static dynamic AsDynamic<TValue>(this IEntitySubject<TValue> subject, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
-            => new EntityValueDynamicActor<TValue>(subject, syntaxOptions);
+            => new EntitySubjectDynamicActor<TValue>(subject, syntaxOptions);
 
         public static dynamic AsDynamic<TValue>(this IEntityObservable<TValue> observable, SyntaxOptions syntaxOptions = SyntaxOptions.DefaultAccess)
             => new EntityObservableDynamicActor<TValue>(observable, syntaxOptions);
