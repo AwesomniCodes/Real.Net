@@ -32,16 +32,16 @@ namespace Awesomni.Codes.FlowRx.Tests
         public static IList<string> GetCommonDirectoryHardcodedDebugString()
             => new List<string>
                 {
-                    " - Create: ",
-                    "/TestDirectory - Create: ",
-                    "/TestDirectory/TestString - Create: TestString",
-                    "/TestDirectory/TestInt - Create: 23",
-                    "/TestDirectory/TestDouble - Create: 23",
-                    "/TestDirectory/TestBool - Create: True",
-                    "/TestDirectory/TestList - Create: ",
-                    "/TestDirectory/TestList/0 - Create: 1",
-                    "/TestDirectory/TestList/1 - Create: 10",
-                    "/TestDirectory/TestList/2 - Create: 15"
+                    " - Definition: ",
+                    "/TestDirectory - Definition: ",
+                    "/TestDirectory/TestString - Definition: TestString",
+                    "/TestDirectory/TestInt - Definition: 23",
+                    "/TestDirectory/TestDouble - Definition: 23",
+                    "/TestDirectory/TestBool - Definition: True",
+                    "/TestDirectory/TestList - Definition: ",
+                    "/TestDirectory/TestList/0 - Definition: 1",
+                    "/TestDirectory/TestList/1 - Definition: 10",
+                    "/TestDirectory/TestList/2 - Definition: 15"
                 };
 
 
