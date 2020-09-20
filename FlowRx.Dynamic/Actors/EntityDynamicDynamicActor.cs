@@ -5,6 +5,7 @@
 
 using Awesomni.Codes.FlowRx;
 using Awesomni.Codes.FlowRx.Utility;
+using DynamicData;
 using ImpromptuInterface;
 using System;
 using System.Collections;
@@ -18,6 +19,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
 {
     internal class EntityDynamicDynamicActor<TInterface> : EntityDynamicActor, IEntityDynamicActor where TInterface : class
     {
+        private readonly IDictionary<string, object> _delegates = new Dictionary<string, object>();
         private readonly IDictionary<string, PropertyInfo> _properties;
         private readonly IEntityDynamic<TInterface> _dynamic;
 
@@ -41,27 +43,10 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
                 return false;
             }
 
-            if (propertyInfo.PropertyType.IsGenericType)
-            {
+            var delegator = propertyInfo.PropertyType.GetImplementation(entity);
 
-                if (propertyInfo.PropertyType.IsAssignableFrom(entity.GetType()))
-                {
-                    result = entity;
-                    return true;
-                }
-            }
-
-            if (entity is IEntitySubject<object> entityValue)
-            {
-                if(entityValue.GetType().GetGenericArguments().First() == propertyInfo.PropertyType)
-                {
-                    result = entityValue.Value;
-                    return true;
-                }
-            }
-
-            result = propertyInfo.PropertyType.IsInterface ? entity.AsDynamic() : null;
-            return result != null;
+            result = delegator;
+            return true;
         }
 
 
@@ -91,5 +76,6 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
 
             return false;
         }
+
     }
 }

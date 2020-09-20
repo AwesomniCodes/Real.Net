@@ -41,6 +41,7 @@ namespace Awesomni.Codes.FlowRx
 
         IEnumerable<object> IReadOnlyDictionary<object, IEntity>.Keys => Keys;
         IEnumerable<IEntity> IReadOnlyDictionary<object, IEntity>.Values => Values;
+
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
     public class EntityDictionary<TKey, TEntity> : EntityDictionary, IEntityDictionary<TKey, TEntity>, IReadOnlyDictionary<TKey, TEntity>, IReadOnlyCollection<KeyValuePair<TKey, TEntity>> where TEntity : class, IEntity
@@ -162,6 +163,7 @@ namespace Awesomni.Codes.FlowRx
         IEnumerable<TEntity> IReadOnlyDictionary<TKey, TEntity>.Values => _item.Value.Items.Select(kE => kE.Entity);
         public override int Count => _item.Value.Count;
         public override bool IsReadOnly => false;
+
         TEntity IReadOnlyDictionary<TKey, TEntity>.this[TKey key] { get => this[key]; }
         public TEntity this[TKey key]
         {

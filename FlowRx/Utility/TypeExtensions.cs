@@ -11,9 +11,15 @@ namespace Awesomni.Codes.FlowRx.Utility
         /// <summary>
         /// Gets The Default Value for this Type
         /// </summary>
-        public static object? GetDefault(this Type type)
+        public static object? GetDefault(this Type type) => type.IsValueType ? Activator.CreateInstance(type) : null;
+
+
+        /// <summary>
+        /// Gets The Default Value for this Type
+        /// </summary>
+        public static object? TryCreate(this Type type)
         {
-            return type.IsValueType ? Activator.CreateInstance(type) : null;
+            return type.GetDefault() ?? type.GetConstructor(Type.EmptyTypes)?.Invoke(new object[] { });
         }
 
         public static IEnumerable<Type> GetTypesIfImplemented(this Type type, Type interfaceType)

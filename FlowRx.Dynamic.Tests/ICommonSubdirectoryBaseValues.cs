@@ -10,5 +10,6 @@ namespace Awesomni.Codes.FlowRx.Tests
         public int TestInt { get; set; }
         public double TestDouble { get; set; }
         public bool TestBool { get; set; }
+        public IList<int> TestList { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace Awesomni.Codes.FlowRx
     {
         public static IList<TValue> AsValueList<TValue>(this IEntityList<IEntitySubject<TValue>> list) => new EntitySubjectListActor<TValue>(list);
 
-        private class EntitySubjectListActor<TValue> : IList<TValue>, IList, IReadOnlyCollection<TValue>
+        private class EntitySubjectListActor<TValue> : IList<TValue>, IList, IReadOnlyCollection<TValue>, IEntity
         {
             private readonly IEntityList<IEntitySubject<TValue>> _list;
 
@@ -41,6 +41,8 @@ namespace Awesomni.Codes.FlowRx
             bool ICollection.IsSynchronized => ((ICollection)_list).IsSynchronized;
 
             object ICollection.SyncRoot => ((ICollection)_list).SyncRoot;
+
+            public ISubject<IEnumerable<IChange>> Changes => _list.Changes;
 
             object IList.this[int index] { get => _list[index].Value!; set => _list[index].OnNext((TValue)value); }
             public TValue this[int index] { get => _list[index].Value; set => _list[index].OnNext(value); }

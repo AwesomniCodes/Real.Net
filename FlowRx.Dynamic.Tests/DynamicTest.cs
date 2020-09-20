@@ -57,6 +57,9 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Tests
             commonDirectory.TestDirectory.TestDouble += 23;
             commonDirectory.TestDirectory.TestInt += 23;
             commonDirectory.TestDirectory.TestString = $"{commonDirectory.TestDirectory.TestString}TestString";
+            commonDirectory.TestDirectory.TestList.Add(1);
+            commonDirectory.TestDirectory.TestList.Add(10);
+            commonDirectory.TestDirectory.TestList.Add(15);
             Assert.Equal(
                 EntityTest.GetCommonDirectoryHardcodedDebugString(),
                 dynamicEntity.Changes.Snapshot().ToDebugStringList());
@@ -72,6 +75,11 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Tests
             testDirectory.TestDouble.OnNext(testDirectory.TestDouble.FirstAsync().Wait() + 23);
             testDirectory.TestInt.OnNext(testDirectory.TestInt.FirstAsync().Wait() + 23);
             testDirectory.TestString.OnNext($"{testDirectory.TestString.FirstAsync().Wait()}TestString");
+            var testList = testDirectory.TestList.FirstAsync().Wait();
+            testList.Add(1);
+            testList.Add(10);
+            testList.Add(15);
+
             Assert.Equal(
                 EntityTest.GetCommonDirectoryHardcodedDebugString(),
                 dynamicEntity.Changes.Snapshot().ToDebugStringList());
@@ -82,10 +90,13 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Tests
         {
             var dynamicEntity = EntityDynamic<ICommonDirectoryEntityValues>.Create();
             var commonDirectory = dynamicEntity.Value;
-            commonDirectory.TestDirectory.TestBool.OnNext(!commonDirectory.TestDirectory.TestBool.Value);
-            commonDirectory.TestDirectory.TestDouble.OnNext(commonDirectory.TestDirectory.TestDouble.Value + 23);
-            commonDirectory.TestDirectory.TestInt.OnNext(commonDirectory.TestDirectory.TestInt.Value + 23);
-            commonDirectory.TestDirectory.TestString.OnNext($"{commonDirectory.TestDirectory.TestString.Value}TestString");
+            commonDirectory.TestDirectory.Value.TestBool.OnNext(!commonDirectory.TestDirectory.Value.TestBool.Value);
+            commonDirectory.TestDirectory.Value.TestDouble.OnNext(commonDirectory.TestDirectory.Value.TestDouble.Value + 23);
+            commonDirectory.TestDirectory.Value.TestInt.OnNext(commonDirectory.TestDirectory.Value.TestInt.Value + 23);
+            commonDirectory.TestDirectory.Value.TestString.OnNext($"{commonDirectory.TestDirectory.Value.TestString.Value}TestString");
+            commonDirectory.TestDirectory.Value.TestList.Add(EntitySubject<int>.Create(1));
+            commonDirectory.TestDirectory.Value.TestList.Add(EntitySubject<int>.Create(10));
+            commonDirectory.TestDirectory.Value.TestList.Add(EntitySubject<int>.Create(15));
             Assert.Equal(
                 EntityTest.GetCommonDirectoryHardcodedDebugString(),
                 dynamicEntity.Changes.Snapshot().ToDebugStringList());

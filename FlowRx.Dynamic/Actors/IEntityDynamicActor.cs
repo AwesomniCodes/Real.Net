@@ -12,7 +12,7 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
     using System.Dynamic;
     using System.Reactive.Subjects;
 
-    public interface IEntityDynamicActor : IDynamicMetaObjectProvider
+    public interface IEntityDynamicActor : IDynamicMetaObjectProvider, IEntity
     {
 
     }

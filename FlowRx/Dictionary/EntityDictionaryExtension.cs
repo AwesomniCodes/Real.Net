@@ -22,7 +22,7 @@ namespace Awesomni.Codes.FlowRx
     {
         public static IDictionary<TKey,TValue> AsValueDictionary<TKey,TValue>(this IEntityDictionary<TKey, IEntitySubject<TValue>> dictionary) => new EntitySubjectDictionaryActor<TKey, TValue>(dictionary);
 
-        private class EntitySubjectDictionaryActor<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>>
+        private class EntitySubjectDictionaryActor<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IReadOnlyCollection<KeyValuePair<TKey, TValue>>, IEntity
         {
             private readonly IEntityDictionary<TKey, IEntitySubject<TValue>> _dictionary;
 
@@ -45,6 +45,8 @@ namespace Awesomni.Codes.FlowRx
             IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values => _dictionary.Values.Select(subject => subject.Value);
 
             int IReadOnlyCollection<KeyValuePair<TKey, TValue>>.Count => Count;
+
+            public ISubject<IEnumerable<IChange>> Changes => _dictionary.Changes;
 
             public void Add(TKey key, TValue value) => _dictionary.Add(key, EntitySubject<TValue>.Create(value));
 

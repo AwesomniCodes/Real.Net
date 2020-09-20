@@ -6,12 +6,14 @@
 using Awesomni.Codes.FlowRx;
 using Awesomni.Codes.FlowRx.Utility;
 using ImpromptuInterface;
+using ImpromptuInterface.Optimization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reactive.Subjects;
 using System.Reflection;
 
 namespace Awesomni.Codes.FlowRx.Dynamic.Actors
@@ -28,9 +30,17 @@ namespace Awesomni.Codes.FlowRx.Dynamic.Actors
             //TODO iterate over T properties and fill Expando property and Directory
         }
 
+        public ISubject<IEnumerable<IChange>> Changes => _entity.Changes;
+
         //Try invocation on actual object as default strategy
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[]? args, out object? result)
         {
+            if(binder.Name == "Entity")
+            {
+                result = _entity;
+                return true;
+            }
+
             try
             {
                 result = _entity.GetType().InvokeMember(binder.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod, null, _entity, args);

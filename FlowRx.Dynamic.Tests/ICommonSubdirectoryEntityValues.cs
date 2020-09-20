@@ -12,5 +12,6 @@ namespace Awesomni.Codes.FlowRx.Tests
         public IEntitySubject<int> TestInt { get; set; }
         public IEntitySubject<double> TestDouble { get; set; }
         public IEntitySubject<bool> TestBool { get; set; }
+        public IEntityList<IEntitySubject<int>> TestList { get; set; }
     }
 }
