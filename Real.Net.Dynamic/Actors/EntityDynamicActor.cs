@@ -1,10 +1,10 @@
 ﻿// <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
-//    file="EntityDynamicActors.cs" project="FlowRx.Dynamic" solution="FlowRx" />
+//    file="EntityDynamicActors.cs" project="Real.Net.Dynamic" solution="Real.Net" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
 
-using Awesomni.Codes.FlowRx;
-using Awesomni.Codes.FlowRx.Utility;
+using Awesomni.Codes.Real.Net;
+using Awesomni.Codes.Real.Net.Utility;
 using ImpromptuInterface;
 using ImpromptuInterface.Optimization;
 using System;
@@ -16,7 +16,7 @@ using System.Linq.Expressions;
 using System.Reactive.Subjects;
 using System.Reflection;
 
-namespace Awesomni.Codes.FlowRx.Dynamic.Actors
+namespace Awesomni.Codes.Real.Net.Dynamic.Actors
 {
     internal abstract class EntityDynamicActor : DynamicObject, IEntityDynamicActor
     {

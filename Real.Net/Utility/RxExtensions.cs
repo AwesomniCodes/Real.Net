@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 
-namespace Awesomni.Codes.FlowRx.Utility
+namespace Awesomni.Codes.Real.Net.Utility
 {
     public static class RxExtensions
     {

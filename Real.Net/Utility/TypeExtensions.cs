@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
-namespace Awesomni.Codes.FlowRx.Utility
+namespace Awesomni.Codes.Real.Net.Utility
 {
     public static class TypeExtensions
     {

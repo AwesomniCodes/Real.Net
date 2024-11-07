@@ -1,13 +1,13 @@
-using Awesomni.Codes.FlowRx;
-using Awesomni.Codes.FlowRx.Tests;
-using Awesomni.Codes.FlowRx.Utility;
+using Awesomni.Codes.Real.Net;
+using Awesomni.Codes.Real.Net.Tests;
+using Awesomni.Codes.Real.Net.Utility;
 using ImpromptuInterface;
 using System;
 using System.Dynamic;
 using System.Reactive.Linq;
 using Xunit;
 
-namespace Awesomni.Codes.FlowRx.Dynamic.Tests
+namespace Awesomni.Codes.Real.Net.Dynamic.Tests
 {
     public class DynamicTest
     {

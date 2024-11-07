@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Awesomni.Codes.FlowRx.Tests
+namespace Awesomni.Codes.Real.Net.Tests
 {
     public interface ICommonSubdirectoryBaseValues
     {

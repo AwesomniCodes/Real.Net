@@ -6,11 +6,11 @@
     <IsPackable>false</IsPackable>
     <Authors>Felix Keil</Authors>
     <Company>Awesomni.Codes</Company>
-    <PackageId>Awesomni.Codes.FlowRx.Dynamic.Tests</PackageId>
+    <PackageId>Awesomni.Codes.Real.Net.Dynamic.Tests</PackageId>
     <Copyright>2020 - Awesomni.Codes</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <PackageProjectUrl>https://awesomni.codes/FlowRx/</PackageProjectUrl>
-    <RepositoryUrl>https://dev.azure.com/keil/AwesomniCodes.FlowRx</RepositoryUrl>
+    <PackageProjectUrl>https://awesomni.codes/Real.Net/</PackageProjectUrl>
+    <RepositoryUrl>https://dev.azure.com/keil/AwesomniCodes.Real.Net</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,9 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FlowRx.Dynamic\FlowRx.Dynamic.csproj" />
-    <ProjectReference Include="..\FlowRx.Tests\FlowRx.Tests.csproj" />
-    <ProjectReference Include="..\FlowRx\FlowRx.csproj" />
+    <ProjectReference Include="..\Real.Net.Dynamic\Real.Net.Dynamic.csproj" />
+    <ProjectReference Include="..\Real.Net.Tests\Real.Net.Tests.csproj" />
+    <ProjectReference Include="..\Real.Net\Real.Net.csproj" />
   </ItemGroup>
 
 </Project>

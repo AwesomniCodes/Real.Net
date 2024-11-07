@@ -1,9 +1,9 @@
-﻿using Awesomni.Codes.FlowRx;
+﻿using Awesomni.Codes.Real.Net;
 using ImpromptuInterface;
 using System;
 using System.Dynamic;
 
-namespace Awesomni.Codes.FlowRx.Dynamic
+namespace Awesomni.Codes.Real.Net.Dynamic
 {
     [Flags]
     public enum SyntaxOptions

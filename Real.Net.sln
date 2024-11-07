@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Tests", "FlowRx.Tests\FlowRx.Tests.csproj", "{8774AA82-BC98-4E9D-92A1-27E43540CA09}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Real.Net.Tests", "Real.Net.Tests\Real.Net.Tests.csproj", "{8774AA82-BC98-4E9D-92A1-27E43540CA09}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx", "FlowRx\FlowRx.csproj", "{198A76E9-F29C-4594-A8D3-32EA0FCBAEF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Real.Net", "Real.Net\Real.Net.csproj", "{198A76E9-F29C-4594-A8D3-32EA0FCBAEF1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowRx.Dynamic", "FlowRx.Dynamic\FlowRx.Dynamic.csproj", "{5858DBD3-542B-4BCB-9BD8-523B0A55F36E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Real.Net.Dynamic", "Real.Net.Dynamic\Real.Net.Dynamic.csproj", "{5858DBD3-542B-4BCB-9BD8-523B0A55F36E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowRx.Dynamic.Tests", "FlowRx.Dynamic.Tests\FlowRx.Dynamic.Tests.csproj", "{A5936259-D26A-4EE3-9F60-0CBB2E8DDC17}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Real.Net.Dynamic.Tests", "Real.Net.Dynamic.Tests\Real.Net.Dynamic.Tests.csproj", "{A5936259-D26A-4EE3-9F60-0CBB2E8DDC17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

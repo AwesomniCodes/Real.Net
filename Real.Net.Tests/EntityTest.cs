@@ -1,5 +1,5 @@
-﻿using Awesomni.Codes.FlowRx;
-using Awesomni.Codes.FlowRx.Utility;
+﻿using Awesomni.Codes.Real.Net;
+using Awesomni.Codes.Real.Net.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Awesomni.Codes.FlowRx.Tests
+namespace Awesomni.Codes.Real.Net.Tests
 {
     public class EntityTest
     {

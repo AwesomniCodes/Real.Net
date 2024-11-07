@@ -1,13 +1,13 @@
-﻿using Awesomni.Codes.FlowRx;
-using Awesomni.Codes.FlowRx.Dynamic.Actors;
-using Awesomni.Codes.FlowRx.Utility;
+﻿using Awesomni.Codes.Real.Net;
+using Awesomni.Codes.Real.Net.Dynamic.Actors;
+using Awesomni.Codes.Real.Net.Utility;
 using ImpromptuInterface;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reactive.Subjects;
 
-namespace Awesomni.Codes.FlowRx.Dynamic
+namespace Awesomni.Codes.Real.Net.Dynamic
 {
     public static class EntityDynamicExtensions
     {

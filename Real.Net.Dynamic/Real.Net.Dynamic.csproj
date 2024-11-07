@@ -7,17 +7,17 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Felix Keil</Authors>
-    <Product>FlowRx</Product>
+    <Product>Real.Net</Product>
     <Copyright>2020 - Awesomni.Codes</Copyright>
-    <RepositoryUrl>https://dev.azure.com/Awesomni.Codes/FlowRx/</RepositoryUrl>
+    <RepositoryUrl>https://dev.azure.com/Awesomni.Codes/Real.Net/</RepositoryUrl>
     <Company>Awesomni.Codes</Company>
-    <PackageProjectUrl>https://awesomni.codes/FlowRx/</PackageProjectUrl>
+    <PackageProjectUrl>https://awesomni.codes/Real.Net/</PackageProjectUrl>
     <PackageIconUrl />
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <RootNamespace>Awesomni.Codes.FlowRx.Dynamic</RootNamespace>
-    <AssemblyName>Awesomni.Codes.FlowRx.Dynamic</AssemblyName>
-    <PackageId>Awesomni.Codes.FlowRx.Dynamic</PackageId>
+    <RootNamespace>Awesomni.Codes.Real.Net.Dynamic</RootNamespace>
+    <AssemblyName>Awesomni.Codes.Real.Net.Dynamic</AssemblyName>
+    <PackageId>Awesomni.Codes.Real.Net.Dynamic</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FlowRx\FlowRx.csproj" />
+    <ProjectReference Include="..\Real.Net\Real.Net.csproj" />
   </ItemGroup>
 
 </Project>

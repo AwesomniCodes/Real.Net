@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reactive.Subjects;
 using System.Text;
 
-namespace Awesomni.Codes.FlowRx.Tests
+namespace Awesomni.Codes.Real.Net.Tests
 {
     public interface ICommonSubdirectorySubjectValues
     {
