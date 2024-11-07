@@ -1,4 +1,5 @@
 ![Real.Net](./logo.png)
+## Status [![Build & Test](https://github.com/AwesomniCodes/Real.Net/actions/workflows/dotnet.yml/badge.svg)](https://github.com/AwesomniCodes/Real.Net/actions/workflows/dotnet.yml)
 
 # The first reactive entity abstraction layer (REAL) for .Net
 
