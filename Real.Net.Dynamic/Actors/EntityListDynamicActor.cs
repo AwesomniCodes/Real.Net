@@ -1,4 +1,4 @@
-﻿// <copyright year="2020" holder="Awesomni.Codes" author="Felix Keil" contact="keil.felix@outlook.com"
+﻿// <copyright year="2024" holder="Awesomni.Codes" author="Felix Keil" contact="felix.keil@awesomni.codes"
 //    file="EntityListDynamicActor.cs" project="Real.Net.Dynamic" solution="Real.Net" />
 // <license type="Apache-2.0" ref="https://opensource.org/licenses/Apache-2.0" />
 // --------------------------------------------------------------------------------------------------------------------
